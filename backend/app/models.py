@@ -67,3 +67,5 @@ class Booking(SQLModel, table=True):
     total_price: float
     status: str = Field(default="confirmed")    # confirmed | cancelled
     created_at: datetime = Field(default_factory=_now)
+    date_from: str | None = None                # дата заезда/поездки (ISO, для отелей/туров)
+    date_to: str | None = None                  # дата выезда (для отелей)

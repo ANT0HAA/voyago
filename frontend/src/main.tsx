@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client'
 import { BrowserRouter, HashRouter } from 'react-router-dom'
 import App from './App'
 import { AuthProvider } from './auth'
+import { CartProvider } from './cart'
 import { IS_DEMO } from './api'
 import './index.css'
 
@@ -14,7 +15,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <Router>
       <AuthProvider>
-        <App />
+        <CartProvider>
+          <App />
+        </CartProvider>
       </AuthProvider>
     </Router>
   </React.StrictMode>,

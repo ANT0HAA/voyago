@@ -1,4 +1,4 @@
-import type { Booking, Flight, Hotel, Stats, Tour, User } from './types'
+import type { Booking, BookingExtra, Flight, Hotel, Stats, Tour, User } from './types'
 import { demoApi, getToken as demoGetToken, setToken as demoSetToken } from './demo/api'
 
 const BASE = import.meta.env.VITE_API_BASE ?? ''
@@ -49,8 +49,8 @@ const realApi = {
   getHotel: (id: number) => req<Hotel>(`/api/hotels/${id}`),
   getTour: (id: number) => req<Tour>(`/api/tours/${id}`),
 
-  book: (itemType: string, itemId: number, quantity: number) =>
-    req<Booking>('/api/bookings', { method: 'POST', body: JSON.stringify({ item_type: itemType, item_id: itemId, quantity }) }),
+  book: (itemType: string, itemId: number, quantity: number, extra: BookingExtra = {}) =>
+    req<Booking>('/api/bookings', { method: 'POST', body: JSON.stringify({ item_type: itemType, item_id: itemId, quantity, ...extra }) }),
   myBookings: () => req<Booking[]>('/api/bookings/mine'),
   cancel: (id: number) => req<Booking>(`/api/bookings/${id}/cancel`, { method: 'POST' }),
 

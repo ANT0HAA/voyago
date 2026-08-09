@@ -1,9 +1,9 @@
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import Detail from './Detail'
-import { AuthProvider } from '../auth'
+import { CartProvider } from '../cart'
 
 vi.mock('../api', () => ({
   api: {
@@ -12,7 +12,6 @@ vi.mock('../api', () => ({
       departure: '2026-08-10T10:00:00', arrival: '2026-08-10T12:00:00',
       price: 5400, seats_total: 100, seats_left: 40,
     }),
-    book: vi.fn().mockResolvedValue({}),
   },
   getToken: () => null,
   setToken: vi.fn(),
@@ -21,17 +20,19 @@ vi.mock('../api', () => ({
 function renderDetail() {
   return render(
     <MemoryRouter initialEntries={['/flights/1']}>
-      <AuthProvider>
+      <CartProvider>
         <Routes>
           <Route path="/flights/:id" element={<Detail type="flight" />} />
-          <Route path="/login" element={<div>Страница входа</div>} />
+          <Route path="/cart" element={<div>Корзина открыта</div>} />
         </Routes>
-      </AuthProvider>
+      </CartProvider>
     </MemoryRouter>,
   )
 }
 
 describe('Detail', () => {
+  beforeEach(() => localStorage.clear())
+
   it('показывает описание рейса и факты', async () => {
     renderDetail()
     expect(await screen.findByRole('heading', { name: 'Москва → Сочи' })).toBeInTheDocument()
@@ -39,10 +40,11 @@ describe('Detail', () => {
     expect(screen.getByText(/осталось 40/)).toBeInTheDocument()
   })
 
-  it('без авторизации бронирование отправляет на вход', async () => {
+  it('кнопка «В корзину» добавляет предложение', async () => {
     const user = userEvent.setup()
     renderDetail()
-    await user.click(await screen.findByRole('button', { name: 'Войти и забронировать' }))
-    expect(await screen.findByText('Страница входа')).toBeInTheDocument()
+    await user.click(await screen.findByRole('button', { name: 'В корзину' }))
+    expect(screen.getByText(/Добавлено в корзину/)).toBeInTheDocument()
+    expect(JSON.parse(localStorage.getItem('voyago_cart') || '[]')).toHaveLength(1)
   })
 })

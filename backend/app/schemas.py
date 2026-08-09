@@ -65,6 +65,8 @@ class BookingIn(BaseModel):
     item_type: str = Field(pattern="^(flight|hotel|tour)$")
     item_id: int
     quantity: int = Field(default=1, ge=1, le=20)
+    date_from: str | None = None                # заезд/дата поездки (ISO YYYY-MM-DD)
+    date_to: str | None = None                  # выезд (для отелей — считает ночи)
 
 
 class BookingOut(BaseModel):
@@ -76,6 +78,9 @@ class BookingOut(BaseModel):
     total_price: float
     status: str
     created_at: datetime
+    date_from: str | None = None
+    date_to: str | None = None
+    nights: int | None = None                   # число ночей (для отелей)
 
 
 # ── Админ-статистика ─────────────────────────────────────────────────

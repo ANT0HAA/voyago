@@ -5,6 +5,15 @@ import type { Booking } from '../types'
 const TYPE_LABEL: Record<string, string> = { flight: 'Рейс', hotel: 'Отель', tour: 'Тур' }
 const money = (n: number) => n.toLocaleString('ru-RU')
 const when = (iso: string) => new Date(iso).toLocaleDateString('ru-RU', { day: '2-digit', month: 'long', year: 'numeric' })
+const short = (iso?: string | null) => (iso ? new Date(iso).toLocaleDateString('ru-RU', { day: '2-digit', month: 'short' }) : '')
+
+function tripInfo(b: Booking): string {
+  if (b.item_type === 'hotel' && b.date_from && b.date_to) {
+    return ` · ${short(b.date_from)} — ${short(b.date_to)}${b.nights ? ` · ${b.nights} ноч.` : ''}`
+  }
+  if (b.item_type === 'tour' && b.date_from) return ` · поездка ${short(b.date_from)}`
+  return ''
+}
 
 export default function MyBookings() {
   const [items, setItems] = useState<Booking[]>([])
@@ -51,7 +60,7 @@ export default function MyBookings() {
                   <span className="font-semibold text-slate-800">{b.title}</span>
                 </div>
                 <div className="text-sm text-slate-500 mt-1">
-                  {b.quantity} × · оформлено {when(b.created_at)}
+                  {b.quantity} шт.{tripInfo(b)} · оформлено {when(b.created_at)}
                 </div>
               </div>
               <div className="text-right">

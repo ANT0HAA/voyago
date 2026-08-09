@@ -88,6 +88,12 @@ function titleOf(item: Flight | Hotel | Tour, type: ItemType): string {
   return `${t.title} (${t.city})`
 }
 
+function nightsBetween(from?: string, to?: string): number | undefined {
+  if (!from || !to) return undefined
+  const days = (new Date(to).getTime() - new Date(from).getTime()) / 86400000
+  return Number.isFinite(days) ? Math.max(1, Math.round(days)) : undefined
+}
+
 export const demoApi = {
   register: (email: string, name: string, password: string) => {
     const db = load()
@@ -144,7 +150,8 @@ export const demoApi = {
     return delay(item)
   },
 
-  book: (itemType: string, itemId: number, quantity: number) => {
+  book: (itemType: string, itemId: number, quantity: number,
+         extra: { date_from?: string; date_to?: string } = {}) => {
     const db = load()
     const user = requireUser(db)
     const type = itemType as ItemType
@@ -154,10 +161,12 @@ export const demoApi = {
     const left = (item as unknown as Record<string, number>)[leftAttr]
     if (left < quantity) throw new Error(`Недостаточно мест — осталось ${left}`)
     ;(item as unknown as Record<string, number>)[leftAttr] = left - quantity
+    const nights = type === 'hotel' ? nightsBetween(extra.date_from, extra.date_to) : undefined
     const booking: Booking = {
       id: db.seqBooking++, item_type: type, item_id: itemId, title: titleOf(item, type),
-      quantity, total_price: Math.round(unitPrice(item, type) * quantity * 100) / 100,
+      quantity, total_price: Math.round(unitPrice(item, type) * quantity * (nights ?? 1) * 100) / 100,
       status: 'confirmed', created_at: new Date().toISOString(),
+      date_from: extra.date_from ?? null, date_to: extra.date_to ?? null, nights: nights ?? null,
     }
     // сохраняем «владельца» брони для фильтра «Мои брони»
     ownerOf[booking.id] = user.id

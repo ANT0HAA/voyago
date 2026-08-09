@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import { api } from '../api'
-import { useAuth } from '../auth'
+import { useCart } from '../cart'
 import { Cover, galleryEmojis } from '../media'
-import { describe, fmtDateTime, money, ROUTE_OF_TYPE, TYPE_LABEL, type AnyItem } from '../itemView'
+import { describe, fmtDateTime, money, ROUTE_OF_TYPE, TYPE_LABEL, type AnyItem, type ItemView } from '../itemView'
 import type { Flight, Hotel, ItemType, Tour } from '../types'
 
 const INCLUDED: Record<ItemType, string[]> = {
@@ -125,7 +125,7 @@ export default function Detail({ type }: { type: ItemType }) {
           </div>
         </div>
 
-        <BookingPanel view={v} onBooked={load} />
+        <CartPanel view={v} />
       </div>
     </div>
   )
@@ -149,29 +149,32 @@ function Gallery({ seed, emojis, label }: { seed: string; emojis: string[]; labe
   )
 }
 
-function BookingPanel({ view, onBooked }: { view: ReturnType<typeof describe>; onBooked: () => void }) {
-  const { user } = useAuth()
-  const nav = useNavigate()
+const iso = (d: Date) => d.toISOString().slice(0, 10)
+const plusDays = (n: number) => { const d = new Date(); d.setDate(d.getDate() + n); return iso(d) }
+
+function CartPanel({ view }: { view: ItemView }) {
+  const { add } = useCart()
   const [qty, setQty] = useState(1)
-  const [busy, setBusy] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [done, setDone] = useState(false)
+  const [dateFrom, setDateFrom] = useState(view.type === 'flight' ? '' : plusDays(7))
+  const [dateTo, setDateTo] = useState(view.type === 'hotel' ? plusDays(9) : '')
+  const [added, setAdded] = useState(false)
 
   const soldOut = view.left <= 0
+  const rawNights = (new Date(dateTo).getTime() - new Date(dateFrom).getTime()) / 86400000
+  const nights = view.type === 'hotel' && Number.isFinite(rawNights) ? Math.max(1, Math.round(rawNights)) : 1
+  const total = view.price * qty * nights
 
-  const confirm = async () => {
-    if (!user) { nav('/login'); return }
-    setBusy(true)
-    setError(null)
-    try {
-      await api.book(view.type, view.id, qty)
-      setDone(true)
-      onBooked()
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Не удалось забронировать')
-    } finally {
-      setBusy(false)
-    }
+  const field = 'mt-1 w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400'
+
+  const addToCart = () => {
+    add({
+      key: `${view.type}-${view.id}`, type: view.type, id: view.id, title: view.title, sub: view.sub,
+      emoji: view.emoji, seed: view.seed, unitPrice: view.price, priceLabel: view.priceLabel, unit: view.unit,
+      qty, max: view.left,
+      dateFrom: view.type !== 'flight' ? dateFrom : undefined,
+      dateTo: view.type === 'hotel' ? dateTo : undefined,
+    })
+    setAdded(true)
   }
 
   return (
@@ -184,37 +187,50 @@ function BookingPanel({ view, onBooked }: { view: ReturnType<typeof describe>; o
         {soldOut ? 'мест нет' : `осталось ${view.left} ${view.unit}`}
       </div>
 
-      {done ? (
+      {view.type === 'hotel' && (
+        <div className="grid grid-cols-2 gap-2 mt-4">
+          <label className="block text-xs text-slate-500">Заезд
+            <input type="date" className={field} value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
+          </label>
+          <label className="block text-xs text-slate-500">Выезд
+            <input type="date" className={field} value={dateTo} min={dateFrom} onChange={(e) => setDateTo(e.target.value)} />
+          </label>
+        </div>
+      )}
+      {view.type === 'tour' && (
+        <label className="block text-xs text-slate-500 mt-4">Дата поездки
+          <input type="date" className={field} value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
+        </label>
+      )}
+
+      <label className="block mt-3 text-xs text-slate-500">Количество ({view.unit})
+        <input type="number" min={1} max={Math.max(1, view.left)} value={qty} disabled={soldOut}
+          onChange={(e) => setQty(Math.max(1, Math.min(view.left, Number(e.target.value) || 1)))}
+          className={`${field} disabled:bg-slate-50`} />
+      </label>
+
+      <div className="mt-4 flex items-center justify-between text-sm">
+        <span className="text-slate-500">Итого{view.type === 'hotel' ? ` · ${nights} ноч.` : ''}</span>
+        <span className="text-lg font-bold text-slate-800">{money(total)} ₽</span>
+      </div>
+
+      {added ? (
         <div className="mt-4">
           <div className="rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 px-3 py-2 text-sm">
-            Бронирование оформлено!
+            Добавлено в корзину ✓
           </div>
-          <Link to="/bookings" className="block text-center mt-3 text-sm text-brand-600 hover:underline">
-            Перейти в «Мои брони» →
+          <Link to="/cart" className="block text-center mt-3 py-2.5 rounded-lg bg-brand-600 hover:bg-brand-500 text-white text-sm font-medium">
+            Перейти в корзину →
           </Link>
-          <button onClick={() => setDone(false)} className="w-full mt-2 text-xs text-slate-400 hover:text-slate-600">
-            Забронировать ещё
+          <button onClick={() => setAdded(false)} className="w-full mt-2 text-xs text-slate-400 hover:text-slate-600">
+            Продолжить выбор
           </button>
         </div>
       ) : (
-        <>
-          <label className="block mt-4 text-sm text-slate-600">
-            Количество ({view.unit})
-            <input type="number" min={1} max={Math.max(1, view.left)} value={qty} disabled={soldOut}
-              onChange={(e) => setQty(Math.max(1, Math.min(view.left, Number(e.target.value) || 1)))}
-              className="mt-1 w-full border border-slate-300 rounded-lg px-3 py-2 text-sm disabled:bg-slate-50" />
-          </label>
-          <div className="mt-3 flex items-center justify-between text-sm">
-            <span className="text-slate-500">Итого</span>
-            <span className="text-lg font-bold text-slate-800">{money(view.price * qty)} ₽</span>
-          </div>
-          {error && <div className="mt-3 text-sm text-rose-600">{error}</div>}
-          <button onClick={confirm} disabled={busy || soldOut}
-            className="w-full mt-4 py-2.5 rounded-lg bg-brand-600 hover:bg-brand-500 disabled:opacity-40 text-white text-sm font-medium">
-            {busy ? 'Оформляю…' : !user ? 'Войти и забронировать' : 'Забронировать'}
-          </button>
-          {!user && <div className="text-xs text-slate-400 mt-2 text-center">Нужен вход в аккаунт</div>}
-        </>
+        <button onClick={addToCart} disabled={soldOut}
+          className="w-full mt-4 py-2.5 rounded-lg bg-brand-600 hover:bg-brand-500 disabled:opacity-40 text-white text-sm font-medium">
+          В корзину
+        </button>
       )}
     </aside>
   )

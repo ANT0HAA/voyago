@@ -43,6 +43,15 @@ export interface Booking {
   total_price: number
   status: string
   created_at: string
+  date_from?: string | null
+  date_to?: string | null
+  nights?: number | null
+}
+
+/** Доп. поля бронирования: даты заезда/выезда (для отелей — считаются ночи). */
+export interface BookingExtra {
+  date_from?: string
+  date_to?: string
 }
 
 export interface User {
