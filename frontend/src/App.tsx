@@ -5,6 +5,7 @@ import { IS_DEMO } from './api'
 import { demoReset } from './demo/api'
 import Home from './pages/Home'
 import Catalog from './pages/Catalog'
+import Detail from './pages/Detail'
 import MyBookings from './pages/MyBookings'
 import AuthPage from './pages/AuthPage'
 import Admin from './pages/Admin'
@@ -68,6 +69,9 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/search/:type" element={<Catalog />} />
+          <Route path="/flights/:id" element={<Detail type="flight" />} />
+          <Route path="/hotels/:id" element={<Detail type="hotel" />} />
+          <Route path="/tours/:id" element={<Detail type="tour" />} />
           <Route path="/bookings" element={<RequireAuth><MyBookings /></RequireAuth>} />
           <Route path="/login" element={<AuthPage />} />
           <Route path="/admin" element={<RequireAuth admin><Admin /></RequireAuth>} />

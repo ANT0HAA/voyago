@@ -45,6 +45,10 @@ const realApi = {
   listHotels: (p: Record<string, string> = {}) => req<Hotel[]>(`/api/hotels?${qs(p)}`),
   listTours: (p: Record<string, string> = {}) => req<Tour[]>(`/api/tours?${qs(p)}`),
 
+  getFlight: (id: number) => req<Flight>(`/api/flights/${id}`),
+  getHotel: (id: number) => req<Hotel>(`/api/hotels/${id}`),
+  getTour: (id: number) => req<Tour>(`/api/tours/${id}`),
+
   book: (itemType: string, itemId: number, quantity: number) =>
     req<Booking>('/api/bookings', { method: 'POST', body: JSON.stringify({ item_type: itemType, item_id: itemId, quantity }) }),
   myBookings: () => req<Booking[]>('/api/bookings/mine'),

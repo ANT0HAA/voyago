@@ -125,6 +125,25 @@ export const demoApi = {
     return delay(db.tours.filter((t) => contains(t.city, p.city)))
   },
 
+  getFlight: (id: number) => {
+    const db = load()
+    const item = db.flights.find((f) => f.id === id)
+    if (!item) throw new Error('Рейс не найден')
+    return delay(item)
+  },
+  getHotel: (id: number) => {
+    const db = load()
+    const item = db.hotels.find((h) => h.id === id)
+    if (!item) throw new Error('Отель не найден')
+    return delay(item)
+  },
+  getTour: (id: number) => {
+    const db = load()
+    const item = db.tours.find((t) => t.id === id)
+    if (!item) throw new Error('Тур не найден')
+    return delay(item)
+  },
+
   book: (itemType: string, itemId: number, quantity: number) => {
     const db = load()
     const user = requireUser(db)

@@ -1,5 +1,9 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { api } from '../api'
+import { Cover, cityEmoji } from '../media'
+import { describe, money, type AnyItem, type ItemView } from '../itemView'
+import type { ItemType } from '../types'
 
 const TABS = [
   { key: 'flights', label: '✈ Рейсы' },
@@ -13,12 +17,24 @@ const CATS = [
   { to: '/search/tours', emoji: '🧭', title: 'Туры', text: 'Экскурсии и впечатления на месте.' },
 ]
 
+const DESTINATIONS = ['Сочи', 'Санкт-Петербург', 'Казань', 'Калининград', 'Екатеринбург', 'Мурманск']
+
 export default function Home() {
   const nav = useNavigate()
   const [tab, setTab] = useState('flights')
   const [from, setFrom] = useState('')
   const [to, setTo] = useState('')
   const [city, setCity] = useState('')
+  const [offers, setOffers] = useState<ItemView[]>([])
+
+  useEffect(() => {
+    Promise.all([api.listFlights(), api.listHotels(), api.listTours()])
+      .then(([f, h, t]) => {
+        const pick = (arr: AnyItem[], type: ItemType, n: number) => arr.slice(0, n).map((it) => describe(it, type))
+        setOffers([...pick(f, 'flight', 2), ...pick(h, 'hotel', 2), ...pick(t, 'tour', 2)])
+      })
+      .catch(() => {})
+  }, [])
 
   const search = () => {
     const p = new URLSearchParams()
@@ -68,6 +84,25 @@ export default function Home() {
         </div>
       </section>
 
+      {offers.length > 0 && (
+        <section className="max-w-6xl mx-auto px-5 py-12">
+          <h2 className="text-2xl font-bold text-slate-800 mb-5">🔥 Горящие предложения</h2>
+          <OffersCarousel offers={offers} />
+        </section>
+      )}
+
+      <section className="max-w-6xl mx-auto px-5 pb-4">
+        <h2 className="text-2xl font-bold text-slate-800 mb-5">Популярные направления</h2>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+          {DESTINATIONS.map((d) => (
+            <Link key={d} to={`/search/hotels?city=${encodeURIComponent(d)}`}
+              className="rounded-2xl overflow-hidden hover:shadow-md transition">
+              <Cover seed={d} emoji={cityEmoji(d)} label={d} className="h-28" glyphClass="text-4xl" />
+            </Link>
+          ))}
+        </div>
+      </section>
+
       <section className="max-w-6xl mx-auto px-5 py-12 grid sm:grid-cols-3 gap-5">
         {CATS.map((c) => (
           <Link key={c.to} to={c.to}
@@ -79,5 +114,53 @@ export default function Home() {
         ))}
       </section>
     </>
+  )
+}
+
+function OffersCarousel({ offers }: { offers: ItemView[] }) {
+  const [idx, setIdx] = useState(0)
+  const timer = useRef<ReturnType<typeof setInterval> | null>(null)
+  const count = offers.length
+
+  useEffect(() => {
+    timer.current = setInterval(() => setIdx((i) => (i + 1) % count), 4500)
+    return () => { if (timer.current) clearInterval(timer.current) }
+  }, [count])
+
+  const go = (i: number) => setIdx((i + count) % count)
+
+  return (
+    <div className="relative">
+      <div className="overflow-hidden rounded-2xl">
+        <div className="flex transition-transform duration-500" style={{ transform: `translateX(-${idx * 100}%)` }}>
+          {offers.map((o) => (
+            <Link key={`${o.type}-${o.id}`} to={o.detailPath} className="w-full shrink-0">
+              <div className="relative h-64">
+                <Cover seed={o.seed} emoji={o.emoji} className="absolute inset-0 w-full h-full" glyphClass="text-7xl" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+                <div className="absolute bottom-0 p-6 text-white">
+                  <div className="text-xs uppercase tracking-wide opacity-80">Специальное предложение</div>
+                  <div className="text-2xl font-bold mt-1">{o.title}</div>
+                  <div className="opacity-90">{o.sub}</div>
+                  <div className="mt-2 text-lg font-semibold">от {money(o.price)} {o.priceLabel}</div>
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </div>
+
+      <button onClick={() => go(idx - 1)} aria-label="Назад"
+        className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/80 hover:bg-white text-slate-700 shadow flex items-center justify-center">‹</button>
+      <button onClick={() => go(idx + 1)} aria-label="Вперёд"
+        className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/80 hover:bg-white text-slate-700 shadow flex items-center justify-center">›</button>
+
+      <div className="flex justify-center gap-1.5 mt-3">
+        {offers.map((_, i) => (
+          <button key={i} onClick={() => go(i)} aria-label={`Слайд ${i + 1}`}
+            className={`h-2 rounded-full transition-all ${i === idx ? 'w-6 bg-brand-600' : 'w-2 bg-slate-300'}`} />
+        ))}
+      </div>
+    </div>
   )
 }

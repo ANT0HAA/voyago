@@ -3,7 +3,6 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import Catalog from './Catalog'
-import { AuthProvider } from '../auth'
 
 vi.mock('../api', () => ({
   api: {
@@ -14,7 +13,6 @@ vi.mock('../api', () => ({
     }]),
     listHotels: vi.fn().mockResolvedValue([]),
     listTours: vi.fn().mockResolvedValue([]),
-    book: vi.fn().mockResolvedValue({}),
   },
   getToken: () => null,
   setToken: vi.fn(),
@@ -23,27 +21,34 @@ vi.mock('../api', () => ({
 function renderCatalog() {
   return render(
     <MemoryRouter initialEntries={['/search/flights']}>
-      <AuthProvider>
-        <Routes>
-          <Route path="/search/:type" element={<Catalog />} />
-          <Route path="/login" element={<div>Страница входа</div>} />
-        </Routes>
-      </AuthProvider>
+      <Routes>
+        <Route path="/search/:type" element={<Catalog />} />
+        <Route path="/flights/:id" element={<div>Страница рейса</div>} />
+      </Routes>
     </MemoryRouter>,
   )
 }
 
 describe('Catalog', () => {
-  it('показывает загруженные рейсы', async () => {
+  it('показывает загруженные рейсы с остатком мест', async () => {
     renderCatalog()
     expect(await screen.findByText('Москва → Сочи')).toBeInTheDocument()
     expect(screen.getByText(/осталось 40/)).toBeInTheDocument()
   })
 
-  it('без авторизации отправляет на страницу входа при бронировании', async () => {
+  it('карточка ведёт на страницу деталей', async () => {
     const user = userEvent.setup()
     renderCatalog()
-    await user.click(await screen.findByRole('button', { name: 'Забронировать' }))
-    expect(await screen.findByText('Страница входа')).toBeInTheDocument()
+    await user.click(await screen.findByText('Москва → Сочи'))
+    expect(await screen.findByText('Страница рейса')).toBeInTheDocument()
+  })
+
+  it('фильтр по городу прилёта скрывает несовпадающие рейсы', async () => {
+    const user = userEvent.setup()
+    renderCatalog()
+    await screen.findByText('Москва → Сочи')
+    await user.type(screen.getByPlaceholderText('Город прилёта'), 'Казань')
+    expect(screen.queryByText('Москва → Сочи')).not.toBeInTheDocument()
+    expect(screen.getByText(/Ничего не найдено/)).toBeInTheDocument()
   })
 })
