@@ -1,0 +1,68 @@
+import { type ReactElement } from 'react'
+import { Link, Navigate, Route, Routes } from 'react-router-dom'
+import { useAuth } from './auth'
+import Home from './pages/Home'
+import Catalog from './pages/Catalog'
+import MyBookings from './pages/MyBookings'
+import AuthPage from './pages/AuthPage'
+import Admin from './pages/Admin'
+
+function Navbar() {
+  const { user, logout } = useAuth()
+  const link = 'text-sm text-slate-600 hover:text-brand-600'
+  return (
+    <header className="bg-white border-b border-slate-200 sticky top-0 z-20">
+      <nav className="max-w-6xl mx-auto px-5 h-14 flex items-center gap-5">
+        <Link to="/" className="font-bold text-brand-600 text-lg mr-2">✈ Voyago</Link>
+        <Link to="/search/flights" className={link}>Рейсы</Link>
+        <Link to="/search/hotels" className={link}>Отели</Link>
+        <Link to="/search/tours" className={link}>Туры</Link>
+        <div className="ml-auto flex items-center gap-4">
+          {user ? (
+            <>
+              <Link to="/bookings" className={link}>Мои брони</Link>
+              {user.role === 'admin' && <Link to="/admin" className="text-sm font-medium text-brand-600">Админка</Link>}
+              <span className="text-sm text-slate-400">{user.name}</span>
+              <button onClick={logout} className={link}>Выйти</button>
+            </>
+          ) : (
+            <Link to="/login" className="text-sm font-medium text-white bg-brand-600 hover:bg-brand-500 px-3.5 py-1.5 rounded-lg">
+              Войти
+            </Link>
+          )}
+        </div>
+      </nav>
+    </header>
+  )
+}
+
+function RequireAuth({ children, admin = false }: { children: ReactElement; admin?: boolean }) {
+  const { user, ready } = useAuth()
+  if (!ready) return null
+  if (!user) return <Navigate to="/login" replace />
+  if (admin && user.role !== 'admin') return <Navigate to="/" replace />
+  return children
+}
+
+export default function App() {
+  return (
+    <div className="min-h-screen flex flex-col">
+      <Navbar />
+      <main className="flex-1">
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/search/:type" element={<Catalog />} />
+          <Route path="/bookings" element={<RequireAuth><MyBookings /></RequireAuth>} />
+          <Route path="/login" element={<AuthPage />} />
+          <Route path="/admin" element={<RequireAuth admin><Admin /></RequireAuth>} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </main>
+      <footer className="border-t border-slate-200 bg-white">
+        <div className="max-w-6xl mx-auto px-5 py-6 text-xs text-slate-400">
+          Voyago · демо-проект бронирования путешествий · open-source
+        </div>
+      </footer>
+    </div>
+  )
+}
