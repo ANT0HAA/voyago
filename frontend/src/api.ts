@@ -1,12 +1,16 @@
 import type { Booking, Flight, Hotel, Stats, Tour, User } from './types'
+import { demoApi, getToken as demoGetToken, setToken as demoSetToken } from './demo/api'
 
 const BASE = import.meta.env.VITE_API_BASE ?? ''
 
+/** Демо-режим (сборка для GitHub Pages): весь API работает в браузере, без бэкенда. */
+export const IS_DEMO = import.meta.env.VITE_DEMO === '1'
+
 let _token: string | null = localStorage.getItem('voyago_token')
-export function getToken(): string | null {
+function realGetToken(): string | null {
   return _token
 }
-export function setToken(t: string | null): void {
+function realSetToken(t: string | null): void {
   _token = t
   if (t) localStorage.setItem('voyago_token', t)
   else localStorage.removeItem('voyago_token')
@@ -30,7 +34,7 @@ interface AuthResp {
 
 const qs = (p: Record<string, string>) => new URLSearchParams(p).toString()
 
-export const api = {
+const realApi = {
   register: (email: string, name: string, password: string) =>
     req<AuthResp>('/api/auth/register', { method: 'POST', body: JSON.stringify({ email, name, password }) }),
   login: (email: string, password: string) =>
@@ -55,3 +59,8 @@ export const api = {
   adminDelete: (type: string, id: number) =>
     req<void>(`/api/admin/${type}s/${id}`, { method: 'DELETE' }),
 }
+
+// В демо-режиме подменяем сетевой клиент на браузерный; иначе — настоящий REST.
+export const api = (IS_DEMO ? (demoApi as unknown as typeof realApi) : realApi)
+export const getToken = IS_DEMO ? demoGetToken : realGetToken
+export const setToken = IS_DEMO ? demoSetToken : realSetToken

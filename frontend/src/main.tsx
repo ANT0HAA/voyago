@@ -1,16 +1,21 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import { BrowserRouter } from 'react-router-dom'
+import { BrowserRouter, HashRouter } from 'react-router-dom'
 import App from './App'
 import { AuthProvider } from './auth'
+import { IS_DEMO } from './api'
 import './index.css'
+
+// В демо-режиме (GitHub Pages) используем HashRouter — глубокие ссылки и обновление
+// страницы работают без серверной настройки перезаписи путей.
+const Router = IS_DEMO ? HashRouter : BrowserRouter
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <BrowserRouter>
+    <Router>
       <AuthProvider>
         <App />
       </AuthProvider>
-    </BrowserRouter>
+    </Router>
   </React.StrictMode>,
 )

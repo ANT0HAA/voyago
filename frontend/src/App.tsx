@@ -1,11 +1,26 @@
 import { type ReactElement } from 'react'
 import { Link, Navigate, Route, Routes } from 'react-router-dom'
 import { useAuth } from './auth'
+import { IS_DEMO } from './api'
+import { demoReset } from './demo/api'
 import Home from './pages/Home'
 import Catalog from './pages/Catalog'
 import MyBookings from './pages/MyBookings'
 import AuthPage from './pages/AuthPage'
 import Admin from './pages/Admin'
+
+function DemoBanner() {
+  if (!IS_DEMO) return null
+  const reset = () => { demoReset(); window.location.reload() }
+  return (
+    <div className="bg-amber-50 border-b border-amber-200 text-amber-800 text-xs">
+      <div className="max-w-6xl mx-auto px-5 py-1.5 flex items-center gap-2 flex-wrap">
+        <span>🧪 Демо-версия — все данные хранятся только в вашем браузере. Логин: <b>admin@voyago.app / admin123</b> или <b>user@voyago.app / user123</b>.</span>
+        <button onClick={reset} className="underline hover:text-amber-900 ml-auto">Сбросить демо</button>
+      </div>
+    </div>
+  )
+}
 
 function Navbar() {
   const { user, logout } = useAuth()
@@ -47,6 +62,7 @@ function RequireAuth({ children, admin = false }: { children: ReactElement; admi
 export default function App() {
   return (
     <div className="min-h-screen flex flex-col">
+      <DemoBanner />
       <Navbar />
       <main className="flex-1">
         <Routes>
