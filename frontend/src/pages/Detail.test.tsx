@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import Detail from './Detail'
 import { CartProvider } from '../cart'
+import { FavoritesProvider } from '../favorites'
 
 vi.mock('../api', () => ({
   api: {
@@ -20,12 +21,14 @@ vi.mock('../api', () => ({
 function renderDetail() {
   return render(
     <MemoryRouter initialEntries={['/flights/1']}>
-      <CartProvider>
-        <Routes>
-          <Route path="/flights/:id" element={<Detail type="flight" />} />
-          <Route path="/cart" element={<div>Корзина открыта</div>} />
-        </Routes>
-      </CartProvider>
+      <FavoritesProvider>
+        <CartProvider>
+          <Routes>
+            <Route path="/flights/:id" element={<Detail type="flight" />} />
+            <Route path="/cart" element={<div>Корзина открыта</div>} />
+          </Routes>
+        </CartProvider>
+      </FavoritesProvider>
     </MemoryRouter>,
   )
 }

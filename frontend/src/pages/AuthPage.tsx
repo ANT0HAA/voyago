@@ -28,32 +28,32 @@ export default function AuthPage() {
     }
   }
 
-  const input = 'w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400'
+  const input = 'w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400'
 
   return (
     <div className="max-w-sm mx-auto px-5 py-12">
-      <div className="rounded-2xl border border-slate-200 bg-white p-7">
-        <h1 className="text-xl font-bold text-slate-800 mb-1">
+      <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-7">
+        <h1 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-1">
           {mode === 'login' ? 'Вход' : 'Регистрация'}
         </h1>
-        <p className="text-sm text-slate-500 mb-6">
+        <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
           {mode === 'login' ? 'Войдите, чтобы бронировать и видеть свои поездки.' : 'Создайте аккаунт за минуту.'}
         </p>
 
         <form onSubmit={submit} className="space-y-3">
           {mode === 'register' && (
-            <label className="block text-sm text-slate-600">
+            <label className="block text-sm text-slate-600 dark:text-slate-300">
               Имя
               <input className={`mt-1 ${input}`} value={name} onChange={(e) => setName(e.target.value)}
                 required autoComplete="name" />
             </label>
           )}
-          <label className="block text-sm text-slate-600">
+          <label className="block text-sm text-slate-600 dark:text-slate-300">
             Email
             <input className={`mt-1 ${input}`} type="email" value={email} onChange={(e) => setEmail(e.target.value)}
               required autoComplete="email" />
           </label>
-          <label className="block text-sm text-slate-600">
+          <label className="block text-sm text-slate-600 dark:text-slate-300">
             Пароль
             <input className={`mt-1 ${input}`} type="password" value={password} onChange={(e) => setPassword(e.target.value)}
               required minLength={6} autoComplete={mode === 'login' ? 'current-password' : 'new-password'} />
@@ -67,7 +67,7 @@ export default function AuthPage() {
           </button>
         </form>
 
-        <div className="mt-5 text-center text-sm text-slate-500">
+        <div className="mt-5 text-center text-sm text-slate-500 dark:text-slate-400">
           {mode === 'login' ? 'Нет аккаунта?' : 'Уже есть аккаунт?'}{' '}
           <button onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); setError(null) }}
             className="text-brand-600 font-medium hover:underline">
@@ -76,7 +76,7 @@ export default function AuthPage() {
         </div>
 
         {mode === 'login' && (
-          <div className="mt-5 rounded-lg bg-slate-50 border border-slate-200 px-3 py-2.5 text-xs text-slate-500">
+          <div className="mt-5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 px-3 py-2.5 text-xs text-slate-500 dark:text-slate-400">
             Демо-доступ: <b>user@voyago.app</b> / user123 · админ <b>admin@voyago.app</b> / admin123
           </div>
         )}

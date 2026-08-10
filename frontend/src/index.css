@@ -5,7 +5,13 @@
 :root {
   color-scheme: light;
 }
+html.dark {
+  color-scheme: dark;
+}
 
 body {
   @apply bg-slate-50 text-slate-800 antialiased;
+}
+html.dark body {
+  @apply bg-slate-900 text-slate-100;
 }

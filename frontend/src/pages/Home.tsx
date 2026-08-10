@@ -47,7 +47,7 @@ export default function Home() {
     nav(`/search/${tab}?${p.toString()}`)
   }
 
-  const input = 'flex-1 min-w-0 border border-slate-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400'
+  const input = 'flex-1 min-w-0 border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400'
 
   return (
     <>
@@ -56,12 +56,12 @@ export default function Home() {
           <h1 className="text-4xl sm:text-5xl font-bold leading-tight">Путешествия начинаются здесь</h1>
           <p className="mt-3 text-brand-50 text-lg">Авиабилеты, отели и туры — забронируйте отдых в пару кликов.</p>
 
-          <div className="mt-8 bg-white rounded-2xl p-4 shadow-xl text-slate-800 max-w-3xl">
+          <div className="mt-8 bg-white dark:bg-slate-800 rounded-2xl p-4 shadow-xl text-slate-800 dark:text-slate-100 max-w-3xl">
             <div className="flex gap-1.5 mb-3">
               {TABS.map((t) => (
                 <button key={t.key} onClick={() => setTab(t.key)}
                   className={`px-3.5 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                    tab === t.key ? 'bg-brand-600 text-white' : 'text-slate-600 hover:bg-slate-100'}`}>
+                    tab === t.key ? 'bg-brand-600 text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'}`}>
                   {t.label}
                 </button>
               ))}
@@ -86,13 +86,13 @@ export default function Home() {
 
       {offers.length > 0 && (
         <section className="max-w-6xl mx-auto px-5 py-12">
-          <h2 className="text-2xl font-bold text-slate-800 mb-5">🔥 Горящие предложения</h2>
+          <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-5">🔥 Горящие предложения</h2>
           <OffersCarousel offers={offers} />
         </section>
       )}
 
       <section className="max-w-6xl mx-auto px-5 pb-4">
-        <h2 className="text-2xl font-bold text-slate-800 mb-5">Популярные направления</h2>
+        <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-5">Популярные направления</h2>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
           {DESTINATIONS.map((d) => (
             <Link key={d} to={`/search/hotels?city=${encodeURIComponent(d)}`}
@@ -106,10 +106,10 @@ export default function Home() {
       <section className="max-w-6xl mx-auto px-5 py-12 grid sm:grid-cols-3 gap-5">
         {CATS.map((c) => (
           <Link key={c.to} to={c.to}
-            className="rounded-2xl border border-slate-200 bg-white p-6 hover:shadow-md hover:border-brand-200 transition">
+            className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6 hover:shadow-md hover:border-brand-200 transition">
             <div className="text-3xl mb-3">{c.emoji}</div>
-            <div className="font-semibold text-slate-800">{c.title}</div>
-            <div className="text-sm text-slate-500 mt-1">{c.text}</div>
+            <div className="font-semibold text-slate-800 dark:text-slate-100">{c.title}</div>
+            <div className="text-sm text-slate-500 dark:text-slate-400 mt-1">{c.text}</div>
           </Link>
         ))}
       </section>
@@ -151,9 +151,9 @@ function OffersCarousel({ offers }: { offers: ItemView[] }) {
       </div>
 
       <button onClick={() => go(idx - 1)} aria-label="Назад"
-        className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/80 hover:bg-white text-slate-700 shadow flex items-center justify-center">‹</button>
+        className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/80 hover:bg-white text-slate-700 dark:text-slate-200 shadow flex items-center justify-center">‹</button>
       <button onClick={() => go(idx + 1)} aria-label="Вперёд"
-        className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/80 hover:bg-white text-slate-700 shadow flex items-center justify-center">›</button>
+        className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/80 hover:bg-white text-slate-700 dark:text-slate-200 shadow flex items-center justify-center">›</button>
 
       <div className="flex justify-center gap-1.5 mt-3">
         {offers.map((_, i) => (

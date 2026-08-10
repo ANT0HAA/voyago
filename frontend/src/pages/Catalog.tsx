@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { api } from '../api'
 import { Cover } from '../media'
+import { FavButton } from '../favorites'
 import { describe, money, TYPE_OF_ROUTE, type AnyItem } from '../itemView'
 import type { Flight, Hotel, Tour } from '../types'
 
@@ -86,8 +87,8 @@ export default function Catalog() {
 
   return (
     <div className="max-w-6xl mx-auto px-5 py-8">
-      <h1 className="text-2xl font-bold text-slate-800 mb-1">{TITLES[type] ?? 'Каталог'}</h1>
-      <p className="text-slate-500 mb-6">{visible.length} из {items.length} предложений</p>
+      <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-1">{TITLES[type] ?? 'Каталог'}</h1>
+      <p className="text-slate-500 dark:text-slate-400 mb-6">{visible.length} из {items.length} предложений</p>
 
       {error && <div className="mb-4 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 px-4 py-2.5 text-sm">{error}</div>}
 
@@ -95,31 +96,35 @@ export default function Catalog() {
         <Filters type={itemType} filters={filters} set={set} maxAvailable={maxAvailable} />
 
         <div>
-          {loading && <p className="text-slate-400">Загрузка…</p>}
-          {!loading && visible.length === 0 && <p className="text-slate-400">Ничего не найдено — измените фильтры.</p>}
+          {loading && <p className="text-slate-400 dark:text-slate-500">Загрузка…</p>}
+          {!loading && visible.length === 0 && <p className="text-slate-400 dark:text-slate-500">Ничего не найдено — измените фильтры.</p>}
           <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">
             {visible.map((item) => {
               const v = describe(item, itemType)
               const soldOut = v.left <= 0
               return (
-                <Link key={item.id} to={v.detailPath}
-                  className="rounded-2xl border border-slate-200 bg-white overflow-hidden flex flex-col hover:shadow-md hover:border-brand-200 transition">
-                  <Cover seed={v.seed} emoji={v.emoji} className="h-40" glyphClass="text-5xl" />
-                  <div className="p-4 flex flex-col flex-1">
-                    <div className="font-semibold text-slate-800">{v.title}</div>
-                    <div className="text-sm text-slate-500 mt-0.5">{v.sub}</div>
-                    {v.desc && <div className="text-sm text-slate-500 mt-2 line-clamp-2">{v.desc}</div>}
-                    <div className="mt-3 pt-3 border-t border-slate-100 flex items-end justify-between">
+                <div key={item.id}
+                  className="relative rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 overflow-hidden flex flex-col hover:shadow-md hover:border-brand-200 transition">
+                  <div className="relative">
+                    <Cover seed={v.seed} emoji={v.emoji} className="h-40" glyphClass="text-5xl" />
+                    <FavButton className="absolute top-2 right-2"
+                      item={{ key: `${v.type}-${v.id}`, type: v.type, id: v.id, title: v.title, sub: v.sub, emoji: v.emoji, seed: v.seed, price: v.price, priceLabel: v.priceLabel }} />
+                  </div>
+                  <Link to={v.detailPath} className="p-4 flex flex-col flex-1">
+                    <div className="font-semibold text-slate-800 dark:text-slate-100">{v.title}</div>
+                    <div className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">{v.sub}</div>
+                    {v.desc && <div className="text-sm text-slate-500 dark:text-slate-400 mt-2 line-clamp-2">{v.desc}</div>}
+                    <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-700 flex items-end justify-between">
                       <div>
-                        <div className="text-lg font-bold text-slate-800">{money(v.price)} <span className="text-xs font-normal text-slate-400">{v.priceLabel}</span></div>
-                        <div className={`text-xs mt-0.5 ${soldOut ? 'text-rose-500' : 'text-slate-400'}`}>
+                        <div className="text-lg font-bold text-slate-800 dark:text-slate-100">{money(v.price)} <span className="text-xs font-normal text-slate-400 dark:text-slate-500">{v.priceLabel}</span></div>
+                        <div className={`text-xs mt-0.5 ${soldOut ? 'text-rose-500' : 'text-slate-400 dark:text-slate-500'}`}>
                           {soldOut ? 'мест нет' : `осталось ${v.left} ${v.unit}`}
                         </div>
                       </div>
                       <span className="text-sm font-medium text-brand-600">Подробнее →</span>
                     </div>
-                  </div>
-                </Link>
+                  </Link>
+                </div>
               )
             })}
           </div>
@@ -135,33 +140,33 @@ function Filters({ type, filters, set, maxAvailable }: {
   set: <K extends keyof FilterState>(k: K, val: FilterState[K]) => void
   maxAvailable: number
 }) {
-  const input = 'mt-1 w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400'
+  const input = 'mt-1 w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400'
   return (
-    <aside className="rounded-2xl border border-slate-200 bg-white p-4 h-fit lg:sticky lg:top-20 space-y-4">
-      <div className="font-semibold text-slate-700 text-sm">Фильтры</div>
+    <aside className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4 h-fit lg:sticky lg:top-20 space-y-4">
+      <div className="font-semibold text-slate-700 dark:text-slate-200 text-sm">Фильтры</div>
 
       {type === 'flight' && (
         <>
-          <label className="block text-xs text-slate-500">Откуда
+          <label className="block text-xs text-slate-500 dark:text-slate-400">Откуда
             <input className={input} value={filters.from} onChange={(e) => set('from', e.target.value)} placeholder="Город вылета" />
           </label>
-          <label className="block text-xs text-slate-500">Куда
+          <label className="block text-xs text-slate-500 dark:text-slate-400">Куда
             <input className={input} value={filters.to} onChange={(e) => set('to', e.target.value)} placeholder="Город прилёта" />
           </label>
-          <label className="block text-xs text-slate-500">Дата вылета (от)
+          <label className="block text-xs text-slate-500 dark:text-slate-400">Дата вылета (от)
             <input type="date" className={input} value={filters.date} onChange={(e) => set('date', e.target.value)} />
           </label>
         </>
       )}
 
       {(type === 'hotel' || type === 'tour') && (
-        <label className="block text-xs text-slate-500">Город
+        <label className="block text-xs text-slate-500 dark:text-slate-400">Город
           <input className={input} value={filters.city} onChange={(e) => set('city', e.target.value)} placeholder="Любой город" />
         </label>
       )}
 
       {type === 'hotel' && (
-        <label className="block text-xs text-slate-500">Минимум звёзд
+        <label className="block text-xs text-slate-500 dark:text-slate-400">Минимум звёзд
           <select className={input} value={filters.minStars} onChange={(e) => set('minStars', Number(e.target.value))}>
             <option value={0}>Любые</option>
             <option value={3}>3★ и выше</option>
@@ -172,7 +177,7 @@ function Filters({ type, filters, set, maxAvailable }: {
       )}
 
       {type === 'tour' && (
-        <label className="block text-xs text-slate-500">Длительность
+        <label className="block text-xs text-slate-500 dark:text-slate-400">Длительность
           <select className={input} value={filters.duration} onChange={(e) => set('duration', e.target.value)}>
             <option value="any">Любая</option>
             <option value="1">Однодневные</option>
@@ -182,14 +187,14 @@ function Filters({ type, filters, set, maxAvailable }: {
       )}
 
       {maxAvailable > 0 && (
-        <label className="block text-xs text-slate-500">
-          Цена до: <b className="text-slate-700">{money(filters.maxPrice)} ₽</b>
+        <label className="block text-xs text-slate-500 dark:text-slate-400">
+          Цена до: <b className="text-slate-700 dark:text-slate-200">{money(filters.maxPrice)} ₽</b>
           <input type="range" min={0} max={maxAvailable} step={100} value={filters.maxPrice}
             onChange={(e) => set('maxPrice', Number(e.target.value))} className="mt-1 w-full accent-brand-600" />
         </label>
       )}
 
-      <label className="block text-xs text-slate-500">Сортировка
+      <label className="block text-xs text-slate-500 dark:text-slate-400">Сортировка
         <select className={input} value={filters.sort} onChange={(e) => set('sort', e.target.value as Sort)}>
           <option value="price">Сначала дешевле</option>
           <option value="-price">Сначала дороже</option>

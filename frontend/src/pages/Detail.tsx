@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { api } from '../api'
 import { useCart } from '../cart'
+import { FavButton } from '../favorites'
+import { Reviews } from '../reviews'
 import { Cover, galleryEmojis } from '../media'
 import { describe, fmtDateTime, money, ROUTE_OF_TYPE, TYPE_LABEL, type AnyItem, type ItemView } from '../itemView'
 import type { Flight, Hotel, ItemType, Tour } from '../types'
@@ -77,7 +79,7 @@ export default function Detail({ type }: { type: ItemType }) {
   }
   useEffect(load, [type, id])
 
-  if (loading) return <div className="max-w-5xl mx-auto px-5 py-10 text-slate-400">Загрузка…</div>
+  if (loading) return <div className="max-w-5xl mx-auto px-5 py-10 text-slate-400 dark:text-slate-500">Загрузка…</div>
   if (error || !item) {
     return (
       <div className="max-w-5xl mx-auto px-5 py-10">
@@ -92,37 +94,43 @@ export default function Detail({ type }: { type: ItemType }) {
 
   return (
     <div className="max-w-5xl mx-auto px-5 py-6">
-      <Link to={`/search/${ROUTE_OF_TYPE[type]}`} className="text-sm text-slate-500 hover:text-brand-600">← к результатам</Link>
+      <Link to={`/search/${ROUTE_OF_TYPE[type]}`} className="text-sm text-slate-500 dark:text-slate-400 hover:text-brand-600">← к результатам</Link>
 
       <div className="grid lg:grid-cols-3 gap-6 mt-4">
         <div className="lg:col-span-2">
           <Gallery seed={v.seed} emojis={emojis} label={v.title} />
 
-          <div className="mt-5">
-            <span className="text-xs font-medium text-brand-600 bg-brand-50 rounded px-2 py-0.5">{TYPE_LABEL[type]}</span>
-            <h1 className="text-2xl font-bold text-slate-800 mt-2">{v.title}</h1>
-            <div className="text-slate-500 mt-1">{v.sub}</div>
+          <div className="mt-5 flex items-start justify-between gap-3">
+            <div>
+              <span className="text-xs font-medium text-brand-600 bg-brand-50 dark:bg-brand-600/20 rounded px-2 py-0.5">{TYPE_LABEL[type]}</span>
+              <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mt-2">{v.title}</h1>
+              <div className="text-slate-500 dark:text-slate-400 mt-1">{v.sub}</div>
+            </div>
+            <FavButton className="mt-1 shrink-0"
+              item={{ key: `${v.type}-${v.id}`, type: v.type, id: v.id, title: v.title, sub: v.sub, emoji: v.emoji, seed: v.seed, price: v.price, priceLabel: v.priceLabel }} />
           </div>
 
-          <p className="text-slate-600 mt-4 leading-relaxed">{longDescription(item, type)}</p>
+          <p className="text-slate-600 dark:text-slate-300 mt-4 leading-relaxed">{longDescription(item, type)}</p>
 
           <div className="mt-6 grid sm:grid-cols-2 gap-x-8 gap-y-2">
             {facts(item, type).map(([k, val]) => (
-              <div key={k} className="flex justify-between border-b border-slate-100 py-1.5 text-sm">
-                <span className="text-slate-400">{k}</span>
-                <span className="text-slate-700 font-medium">{val}</span>
+              <div key={k} className="flex justify-between border-b border-slate-100 dark:border-slate-700 py-1.5 text-sm">
+                <span className="text-slate-400 dark:text-slate-500">{k}</span>
+                <span className="text-slate-700 dark:text-slate-200 font-medium">{val}</span>
               </div>
             ))}
           </div>
 
           <div className="mt-6">
-            <div className="text-sm font-semibold text-slate-700 mb-2">Что включено</div>
+            <div className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2">Что включено</div>
             <div className="flex flex-wrap gap-2">
               {INCLUDED[type].map((f) => (
-                <span key={f} className="text-xs text-slate-600 bg-slate-100 rounded-full px-3 py-1">✓ {f}</span>
+                <span key={f} className="text-xs text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 rounded-full px-3 py-1">✓ {f}</span>
               ))}
             </div>
           </div>
+
+          {type !== 'flight' && <Reviews type={type} id={v.id} />}
         </div>
 
         <CartPanel view={v} />
@@ -164,7 +172,7 @@ function CartPanel({ view }: { view: ItemView }) {
   const nights = view.type === 'hotel' && Number.isFinite(rawNights) ? Math.max(1, Math.round(rawNights)) : 1
   const total = view.price * qty * nights
 
-  const field = 'mt-1 w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400'
+  const field = 'mt-1 w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400'
 
   const addToCart = () => {
     add({
@@ -178,40 +186,40 @@ function CartPanel({ view }: { view: ItemView }) {
   }
 
   return (
-    <aside className="lg:sticky lg:top-20 h-fit rounded-2xl border border-slate-200 bg-white p-5">
+    <aside className="lg:sticky lg:top-20 h-fit rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5">
       <div className="flex items-end justify-between">
-        <div className="text-2xl font-bold text-slate-800">{money(view.price)} ₽</div>
-        <div className="text-xs text-slate-400">{view.priceLabel}</div>
+        <div className="text-2xl font-bold text-slate-800 dark:text-slate-100">{money(view.price)} ₽</div>
+        <div className="text-xs text-slate-400 dark:text-slate-500">{view.priceLabel}</div>
       </div>
-      <div className={`text-xs mt-1 ${soldOut ? 'text-rose-500' : 'text-slate-400'}`}>
+      <div className={`text-xs mt-1 ${soldOut ? 'text-rose-500' : 'text-slate-400 dark:text-slate-500'}`}>
         {soldOut ? 'мест нет' : `осталось ${view.left} ${view.unit}`}
       </div>
 
       {view.type === 'hotel' && (
         <div className="grid grid-cols-2 gap-2 mt-4">
-          <label className="block text-xs text-slate-500">Заезд
+          <label className="block text-xs text-slate-500 dark:text-slate-400">Заезд
             <input type="date" className={field} value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
           </label>
-          <label className="block text-xs text-slate-500">Выезд
+          <label className="block text-xs text-slate-500 dark:text-slate-400">Выезд
             <input type="date" className={field} value={dateTo} min={dateFrom} onChange={(e) => setDateTo(e.target.value)} />
           </label>
         </div>
       )}
       {view.type === 'tour' && (
-        <label className="block text-xs text-slate-500 mt-4">Дата поездки
+        <label className="block text-xs text-slate-500 dark:text-slate-400 mt-4">Дата поездки
           <input type="date" className={field} value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
         </label>
       )}
 
-      <label className="block mt-3 text-xs text-slate-500">Количество ({view.unit})
+      <label className="block mt-3 text-xs text-slate-500 dark:text-slate-400">Количество ({view.unit})
         <input type="number" min={1} max={Math.max(1, view.left)} value={qty} disabled={soldOut}
           onChange={(e) => setQty(Math.max(1, Math.min(view.left, Number(e.target.value) || 1)))}
           className={`${field} disabled:bg-slate-50`} />
       </label>
 
       <div className="mt-4 flex items-center justify-between text-sm">
-        <span className="text-slate-500">Итого{view.type === 'hotel' ? ` · ${nights} ноч.` : ''}</span>
-        <span className="text-lg font-bold text-slate-800">{money(total)} ₽</span>
+        <span className="text-slate-500 dark:text-slate-400">Итого{view.type === 'hotel' ? ` · ${nights} ноч.` : ''}</span>
+        <span className="text-lg font-bold text-slate-800 dark:text-slate-100">{money(total)} ₽</span>
       </div>
 
       {added ? (
@@ -222,7 +230,7 @@ function CartPanel({ view }: { view: ItemView }) {
           <Link to="/cart" className="block text-center mt-3 py-2.5 rounded-lg bg-brand-600 hover:bg-brand-500 text-white text-sm font-medium">
             Перейти в корзину →
           </Link>
-          <button onClick={() => setAdded(false)} className="w-full mt-2 text-xs text-slate-400 hover:text-slate-600">
+          <button onClick={() => setAdded(false)} className="w-full mt-2 text-xs text-slate-400 dark:text-slate-500 hover:text-slate-600">
             Продолжить выбор
           </button>
         </div>

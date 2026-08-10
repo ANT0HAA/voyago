@@ -5,6 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Voyago — бронирование путешествий</title>
     <meta name="description" content="Бронируйте авиабилеты, отели и туры для отдыха." />
+    <script>
+      // Применяем тему до отрисовки, чтобы не было «мигания» светлой темой.
+      try {
+        var t = localStorage.getItem('voyago_theme')
+        if (t === 'dark' || (!t && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+          document.documentElement.classList.add('dark')
+        }
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>

@@ -1,8 +1,9 @@
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import Catalog from './Catalog'
+import { FavoritesProvider } from '../favorites'
 
 vi.mock('../api', () => ({
   api: {
@@ -21,15 +22,27 @@ vi.mock('../api', () => ({
 function renderCatalog() {
   return render(
     <MemoryRouter initialEntries={['/search/flights']}>
-      <Routes>
-        <Route path="/search/:type" element={<Catalog />} />
-        <Route path="/flights/:id" element={<div>Страница рейса</div>} />
-      </Routes>
+      <FavoritesProvider>
+        <Routes>
+          <Route path="/search/:type" element={<Catalog />} />
+          <Route path="/flights/:id" element={<div>Страница рейса</div>} />
+        </Routes>
+      </FavoritesProvider>
     </MemoryRouter>,
   )
 }
 
 describe('Catalog', () => {
+  beforeEach(() => localStorage.clear())
+
+  it('добавляет предложение в избранное по клику на сердечко', async () => {
+    const user = userEvent.setup()
+    renderCatalog()
+    await screen.findByText('Москва → Сочи')
+    await user.click(screen.getByRole('button', { name: 'В избранное' }))
+    expect(JSON.parse(localStorage.getItem('voyago_favs') || '[]')).toHaveLength(1)
+  })
+
   it('показывает загруженные рейсы с остатком мест', async () => {
     renderCatalog()
     expect(await screen.findByText('Москва → Сочи')).toBeInTheDocument()

@@ -63,7 +63,7 @@ export default function Admin() {
 
   return (
     <div className="max-w-6xl mx-auto px-5 py-8">
-      <h1 className="text-2xl font-bold text-slate-800 mb-6">Панель администратора</h1>
+      <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-6">Панель администратора</h1>
 
       {stats && (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-8">
@@ -76,11 +76,11 @@ export default function Admin() {
         </div>
       )}
 
-      <div className="flex gap-1.5 mb-5 border-b border-slate-200">
+      <div className="flex gap-1.5 mb-5 border-b border-slate-200 dark:border-slate-700">
         {(['flight', 'hotel', 'tour', 'bookings'] as Tab[]).map((t) => (
           <button key={t} onClick={() => setTab(t)}
             className={`px-4 py-2 text-sm font-medium -mb-px border-b-2 transition-colors ${
-              tab === t ? 'border-brand-600 text-brand-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>
+              tab === t ? 'border-brand-600 text-brand-600' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700'}`}>
             {TAB_LABEL[t]}
           </button>
         ))}
@@ -93,9 +93,9 @@ export default function Admin() {
 
 function StatCard({ label, value }: { label: string; value: number | string }) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-4">
-      <div className="text-2xl font-bold text-slate-800">{value}</div>
-      <div className="text-xs text-slate-500 mt-0.5">{label}</div>
+    <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4">
+      <div className="text-2xl font-bold text-slate-800 dark:text-slate-100">{value}</div>
+      <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{label}</div>
     </div>
   )
 }
@@ -134,11 +134,11 @@ function Manage({ type, onChange }: { type: ManageType; onChange: () => void }) 
       </div>
 
       {error && <div className="mb-4 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 px-4 py-2.5 text-sm">{error}</div>}
-      {loading && <p className="text-slate-400">Загрузка…</p>}
+      {loading && <p className="text-slate-400 dark:text-slate-500">Загрузка…</p>}
 
-      <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden">
+      <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 overflow-hidden">
         <table className="w-full text-sm">
-          <thead className="bg-slate-50 text-slate-500 text-left">
+          <thead className="bg-slate-50 dark:bg-slate-900 text-slate-500 dark:text-slate-400 text-left">
             <tr>
               <th className="px-4 py-2.5 font-medium">Название</th>
               <th className="px-4 py-2.5 font-medium">Цена</th>
@@ -150,22 +150,22 @@ function Manage({ type, onChange }: { type: ManageType; onChange: () => void }) 
             {items.map((item) => {
               const v = rowView(type, item)
               return (
-                <tr key={item.id} className="border-t border-slate-100">
+                <tr key={item.id} className="border-t border-slate-100 dark:border-slate-700">
                   <td className="px-4 py-2.5">
-                    <div className="font-medium text-slate-800">{v.main}</div>
-                    <div className="text-xs text-slate-400">{v.sub}</div>
+                    <div className="font-medium text-slate-800 dark:text-slate-100">{v.main}</div>
+                    <div className="text-xs text-slate-400 dark:text-slate-500">{v.sub}</div>
                   </td>
-                  <td className="px-4 py-2.5 text-slate-700">{money(v.price)} ₽</td>
-                  <td className="px-4 py-2.5 text-slate-500">{v.left} / {v.total}</td>
+                  <td className="px-4 py-2.5 text-slate-700 dark:text-slate-200">{money(v.price)} ₽</td>
+                  <td className="px-4 py-2.5 text-slate-500 dark:text-slate-400">{v.left} / {v.total}</td>
                   <td className="px-4 py-2.5 text-right whitespace-nowrap">
                     <button onClick={() => setEditing(item)} className="text-brand-600 hover:underline mr-3">Изменить</button>
-                    <button onClick={() => remove(item.id)} className="text-slate-400 hover:text-rose-600">Удалить</button>
+                    <button onClick={() => remove(item.id)} className="text-slate-400 dark:text-slate-500 hover:text-rose-600">Удалить</button>
                   </td>
                 </tr>
               )
             })}
             {!loading && items.length === 0 && (
-              <tr><td colSpan={4} className="px-4 py-6 text-center text-slate-400">Пусто</td></tr>
+              <tr><td colSpan={4} className="px-4 py-6 text-center text-slate-400 dark:text-slate-500">Пусто</td></tr>
             )}
           </tbody>
         </table>
@@ -212,17 +212,17 @@ function EditorModal({ type, item, onClose, onSaved }: {
     }
   }
 
-  const inputCls = 'mt-1 w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400'
+  const inputCls = 'mt-1 w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400'
 
   return (
     <div className="fixed inset-0 z-30 bg-black/40 flex items-center justify-center p-4 overflow-y-auto" onClick={onClose}>
-      <div className="bg-white rounded-2xl p-6 w-full max-w-md my-8" onClick={(e) => e.stopPropagation()}>
-        <div className="font-semibold text-slate-800 mb-4">
+      <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 w-full max-w-md my-8" onClick={(e) => e.stopPropagation()}>
+        <div className="font-semibold text-slate-800 dark:text-slate-100 mb-4">
           {item ? 'Изменить' : 'Добавить'} · {TAB_LABEL[type]}
         </div>
         <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
           {fields.map((f) => (
-            <label key={f.key} className="block text-sm text-slate-600">
+            <label key={f.key} className="block text-sm text-slate-600 dark:text-slate-300">
               {f.label}
               {f.type === 'textarea' ? (
                 <textarea className={inputCls} rows={2} value={values[f.key]} onChange={(e) => set(f.key, e.target.value)} />
@@ -237,7 +237,7 @@ function EditorModal({ type, item, onClose, onSaved }: {
         </div>
         {error && <div className="mt-3 text-sm text-rose-600">{error}</div>}
         <div className="mt-5 flex gap-2">
-          <button onClick={onClose} className="flex-1 py-2 text-sm text-slate-600 hover:text-slate-800">Отмена</button>
+          <button onClick={onClose} className="flex-1 py-2 text-sm text-slate-600 dark:text-slate-300 hover:text-slate-800">Отмена</button>
           <button onClick={submit} disabled={busy}
             className="flex-1 py-2 rounded-lg bg-brand-600 hover:bg-brand-500 disabled:opacity-40 text-white text-sm font-medium">
             {busy ? 'Сохраняю…' : 'Сохранить'}
@@ -259,9 +259,9 @@ function BookingsTable() {
   }, [])
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white overflow-x-auto">
+    <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 overflow-x-auto">
       <table className="w-full text-sm">
-        <thead className="bg-slate-50 text-slate-500 text-left">
+        <thead className="bg-slate-50 dark:bg-slate-900 text-slate-500 dark:text-slate-400 text-left">
           <tr>
             <th className="px-4 py-2.5 font-medium">#</th>
             <th className="px-4 py-2.5 font-medium">Тип</th>
@@ -273,12 +273,12 @@ function BookingsTable() {
         </thead>
         <tbody>
           {items.map((b) => (
-            <tr key={b.id} className="border-t border-slate-100">
-              <td className="px-4 py-2.5 text-slate-400">{b.id}</td>
-              <td className="px-4 py-2.5 text-slate-600">{TYPE_LABEL[b.item_type] ?? b.item_type}</td>
-              <td className="px-4 py-2.5 text-slate-800">{b.title}</td>
-              <td className="px-4 py-2.5 text-slate-600">{b.quantity}</td>
-              <td className="px-4 py-2.5 text-slate-700">{money(b.total_price)} ₽</td>
+            <tr key={b.id} className="border-t border-slate-100 dark:border-slate-700">
+              <td className="px-4 py-2.5 text-slate-400 dark:text-slate-500">{b.id}</td>
+              <td className="px-4 py-2.5 text-slate-600 dark:text-slate-300">{TYPE_LABEL[b.item_type] ?? b.item_type}</td>
+              <td className="px-4 py-2.5 text-slate-800 dark:text-slate-100">{b.title}</td>
+              <td className="px-4 py-2.5 text-slate-600 dark:text-slate-300">{b.quantity}</td>
+              <td className="px-4 py-2.5 text-slate-700 dark:text-slate-200">{money(b.total_price)} ₽</td>
               <td className="px-4 py-2.5">
                 <span className={b.status === 'confirmed' ? 'text-emerald-600' : 'text-rose-500'}>
                   {b.status === 'confirmed' ? 'активна' : 'отменена'}
@@ -287,7 +287,7 @@ function BookingsTable() {
             </tr>
           ))}
           {!loading && items.length === 0 && (
-            <tr><td colSpan={6} className="px-4 py-6 text-center text-slate-400">Броней нет</td></tr>
+            <tr><td colSpan={6} className="px-4 py-6 text-center text-slate-400 dark:text-slate-500">Броней нет</td></tr>
           )}
         </tbody>
       </table>
