@@ -40,6 +40,8 @@ const realApi = {
   login: (email: string, password: string) =>
     req<AuthResp>('/api/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) }),
   me: () => req<User>('/api/auth/me'),
+  changePassword: (oldPassword: string, newPassword: string) =>
+    req<void>('/api/auth/change-password', { method: 'POST', body: JSON.stringify({ old_password: oldPassword, new_password: newPassword }) }),
 
   listFlights: (p: Record<string, string> = {}) => req<Flight[]>(`/api/flights?${qs(p)}`),
   listHotels: (p: Record<string, string> = {}) => req<Hotel[]>(`/api/hotels?${qs(p)}`),

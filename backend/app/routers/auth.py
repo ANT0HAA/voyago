@@ -7,7 +7,7 @@ from sqlmodel import Session, select
 from ..auth import create_token, current_user, hash_password, verify_password
 from ..db import get_session
 from ..models import User
-from ..schemas import LoginIn, RegisterIn, TokenOut, UserOut
+from ..schemas import ChangePasswordIn, LoginIn, RegisterIn, TokenOut, UserOut
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
@@ -38,3 +38,13 @@ def login(data: LoginIn, session: Session = Depends(get_session)) -> TokenOut:
 @router.get("/me", response_model=UserOut)
 def me(user: User = Depends(current_user)) -> UserOut:
     return _user_out(user)
+
+
+@router.post("/change-password", status_code=status.HTTP_204_NO_CONTENT)
+def change_password(data: ChangePasswordIn, user: User = Depends(current_user),
+                    session: Session = Depends(get_session)) -> None:
+    if not verify_password(data.old_password, user.hashed_password):
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Неверный текущий пароль")
+    user.hashed_password = hash_password(data.new_password)
+    session.add(user)
+    session.commit()

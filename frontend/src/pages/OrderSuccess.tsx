@@ -4,11 +4,14 @@ import { money } from '../itemView'
 interface OrderState {
   summary?: { title: string; qty: number; sum: number }[]
   total?: number
+  discount?: number
+  promo?: string
 }
 
 export default function OrderSuccess() {
   const { state } = useLocation() as { state?: OrderState }
   const summary = state?.summary ?? []
+  const discount = state?.discount ?? 0
 
   return (
     <div className="max-w-2xl mx-auto px-5 py-16 text-center">
@@ -28,6 +31,11 @@ export default function OrderSuccess() {
               </div>
             ))}
           </div>
+          {discount > 0 && (
+            <div className="flex justify-between text-emerald-600 text-sm mt-2">
+              <span>Скидка{state?.promo ? ` (${state.promo})` : ''}</span><span>−{money(discount)} ₽</span>
+            </div>
+          )}
           {state?.total != null && (
             <div className="border-t border-slate-100 dark:border-slate-700 mt-3 pt-3 flex justify-between">
               <span className="text-slate-500 dark:text-slate-400 text-sm">Итого оплачено</span>

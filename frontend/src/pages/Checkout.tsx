@@ -4,6 +4,7 @@ import { api } from '../api'
 import { useAuth } from '../auth'
 import { lineTotal, useCart } from '../cart'
 import { money } from '../itemView'
+import { promoDiscount, PROMO_HINT, type AppliedPromo } from '../promo'
 
 const onlyDigits = (s: string) => s.replace(/\D/g, '')
 const groupCard = (s: string) => onlyDigits(s).slice(0, 16).replace(/(.{4})/g, '$1 ').trim()
@@ -20,10 +21,23 @@ export default function Checkout() {
   const [holder, setHolder] = useState('')
   const [expiry, setExpiry] = useState('')
   const [cvc, setCvc] = useState('')
+  const [promo, setPromo] = useState('')
+  const [applied, setApplied] = useState<AppliedPromo | null>(null)
+  const [promoMsg, setPromoMsg] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => { if (items.length === 0 && !busy) nav('/cart', { replace: true }) }, [items.length, busy, nav])
+
+  const discount = applied?.discount ?? 0
+  const payTotal = Math.max(0, total - discount)
+
+  const applyPromo = () => {
+    const r = promoDiscount(promo, total)
+    if (!r) { setApplied(null); setPromoMsg('Промокод не найден'); return }
+    setApplied(r)
+    setPromoMsg(`Промокод «${r.code}» применён (${r.label})`)
+  }
 
   const cardOk = onlyDigits(card).length >= 12
   const expiryOk = /^\d{2}\/\d{2}$/.test(expiry)
@@ -35,14 +49,13 @@ export default function Checkout() {
     setBusy(true)
     setError(null)
     const summary = items.map((it) => ({ title: it.title, qty: it.qty, sum: lineTotal(it) }))
-    const grand = total
     try {
       for (const it of items) {
         const extra = it.type === 'hotel' ? { date_from: it.dateFrom, date_to: it.dateTo } : {}
         await api.book(it.type, it.id, it.qty, extra)
       }
       clear()
-      nav('/order', { replace: true, state: { summary, total: grand } })
+      nav('/order', { replace: true, state: { summary, total: payTotal, discount, promo: applied?.code } })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Не удалось оформить заказ')
       setBusy(false)
@@ -108,14 +121,40 @@ export default function Checkout() {
               </div>
             ))}
           </div>
-          <div className="border-t border-slate-100 dark:border-slate-700 mt-3 pt-3 flex justify-between items-center">
-            <span className="text-slate-500 dark:text-slate-400 text-sm">К оплате</span>
-            <span className="text-xl font-bold text-slate-800 dark:text-slate-100">{money(total)} ₽</span>
+
+          <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-700">
+            <label className="block text-xs text-slate-500 dark:text-slate-400">Промокод</label>
+            <div className="flex gap-2 mt-1">
+              <input className="flex-1 border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400"
+                value={promo} onChange={(e) => setPromo(e.target.value)} placeholder="VOYAGO10" />
+              <button type="button" onClick={applyPromo}
+                className="px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700">
+                ОК
+              </button>
+            </div>
+            {promoMsg && <div className={`text-xs mt-1 ${applied ? 'text-emerald-600' : 'text-rose-600'}`}>{promoMsg}</div>}
+            {!promoMsg && <div className="text-[11px] text-slate-400 dark:text-slate-500 mt-1">{PROMO_HINT}</div>}
           </div>
+
+          <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-700 space-y-1 text-sm">
+            <div className="flex justify-between text-slate-500 dark:text-slate-400">
+              <span>Сумма</span><span>{money(total)} ₽</span>
+            </div>
+            {discount > 0 && (
+              <div className="flex justify-between text-emerald-600">
+                <span>Скидка ({applied?.code})</span><span>−{money(discount)} ₽</span>
+              </div>
+            )}
+            <div className="flex justify-between items-center pt-1">
+              <span className="text-slate-500 dark:text-slate-400">К оплате</span>
+              <span className="text-xl font-bold text-slate-800 dark:text-slate-100">{money(payTotal)} ₽</span>
+            </div>
+          </div>
+
           {error && <div className="mt-3 text-sm text-rose-600">{error}</div>}
           <button type="submit" disabled={busy || !canPay}
             className="w-full mt-4 py-2.5 rounded-lg bg-brand-600 hover:bg-brand-500 disabled:opacity-40 text-white text-sm font-medium">
-            {busy ? 'Оформляю…' : `Оплатить ${money(total)} ₽`}
+            {busy ? 'Оформляю…' : `Оплатить ${money(payTotal)} ₽`}
           </button>
         </aside>
       </form>

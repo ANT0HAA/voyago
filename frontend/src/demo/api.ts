@@ -118,6 +118,15 @@ export const demoApi = {
     return delay(publicUser(user))
   },
 
+  changePassword: (oldPassword: string, newPassword: string) => {
+    const db = load()
+    const user = requireUser(db)
+    if (user.password !== oldPassword) throw new Error('Неверный текущий пароль')
+    user.password = newPassword
+    save(db)
+    return delay(undefined as unknown as void)
+  },
+
   listFlights: (p: Record<string, string> = {}) => {
     const db = load()
     return delay(db.flights.filter((f) => contains(f.from_city, p.from_city) && contains(f.to_city, p.to_city)))

@@ -35,3 +35,28 @@ def test_me_returns_current_user(client):
 def test_short_password_rejected(client):
     r = client.post("/api/auth/register", json={"email": "x@test.com", "name": "X", "password": "123"})
     assert r.status_code == 422
+
+
+def test_change_password_flow(client):
+    tok = client.post("/api/auth/register",
+                      json={"email": "cp@test.com", "name": "CP", "password": "secret1"}).json()["access_token"]
+    headers = {"Authorization": f"Bearer {tok}"}
+
+    # неверный текущий пароль
+    bad = client.post("/api/auth/change-password",
+                      json={"old_password": "wrong", "new_password": "brandnew1"}, headers=headers)
+    assert bad.status_code == 400
+
+    # успешная смена
+    ok = client.post("/api/auth/change-password",
+                     json={"old_password": "secret1", "new_password": "brandnew1"}, headers=headers)
+    assert ok.status_code == 204
+
+    # старый пароль больше не работает, новый — работает
+    assert client.post("/api/auth/login", json={"email": "cp@test.com", "password": "secret1"}).status_code == 401
+    assert client.post("/api/auth/login", json={"email": "cp@test.com", "password": "brandnew1"}).status_code == 200
+
+
+def test_change_password_requires_auth(client):
+    r = client.post("/api/auth/change-password", json={"old_password": "a", "new_password": "brandnew1"})
+    assert r.status_code == 401

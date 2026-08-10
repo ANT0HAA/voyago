@@ -26,6 +26,7 @@ export default function Catalog() {
   const [items, setItems] = useState<AnyItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [showFilters, setShowFilters] = useState(false)
 
   const maxAvailable = useMemo(
     () => items.reduce((m, it) => Math.max(m, priceOf(it, itemType)), 0),
@@ -92,8 +93,14 @@ export default function Catalog() {
 
       {error && <div className="mb-4 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 px-4 py-2.5 text-sm">{error}</div>}
 
+      <button onClick={() => setShowFilters((s) => !s)}
+        className="lg:hidden mb-3 text-sm font-medium text-brand-600 border border-slate-200 dark:border-slate-700 rounded-lg px-4 py-2">
+        {showFilters ? 'Скрыть фильтры ▲' : 'Показать фильтры ▼'}
+      </button>
       <div className="grid lg:grid-cols-[240px_1fr] gap-6">
-        <Filters type={itemType} filters={filters} set={set} maxAvailable={maxAvailable} />
+        <div className={showFilters ? 'block' : 'hidden lg:block'}>
+          <Filters type={itemType} filters={filters} set={set} maxAvailable={maxAvailable} />
+        </div>
 
         <div>
           {loading && <p className="text-slate-400 dark:text-slate-500">Загрузка…</p>}

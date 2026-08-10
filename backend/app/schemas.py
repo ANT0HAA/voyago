@@ -18,6 +18,11 @@ class LoginIn(BaseModel):
     password: str
 
 
+class ChangePasswordIn(BaseModel):
+    old_password: str
+    new_password: str = Field(min_length=6, max_length=128)
+
+
 class UserOut(BaseModel):
     id: int
     email: str
