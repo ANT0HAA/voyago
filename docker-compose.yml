@@ -1,0 +1,25 @@
+# Полный стек одной командой: docker compose up --build
+# Фронтенд отдаётся nginx на http://localhost:8080 и проксирует /api на backend.
+services:
+  backend:
+    build: ./backend
+    environment:
+      SECRET_KEY: ${SECRET_KEY:-dev-secret-change-in-prod}
+      CORS_ORIGINS: ${CORS_ORIGINS:-*}
+      DATABASE_URL: sqlite:////data/voyago.db
+    volumes:
+      - backend_data:/data
+    expose:
+      - "8000"
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    depends_on:
+      - backend
+    ports:
+      - "127.0.0.1:8080:80"
+    restart: unless-stopped
+
+volumes:
+  backend_data:

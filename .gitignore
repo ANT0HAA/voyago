@@ -16,6 +16,11 @@ node_modules/
 frontend/dist/
 frontend/coverage/
 
+# Playwright
+frontend/test-results/
+frontend/playwright-report/
+frontend/playwright/.cache/
+
 # Editors / OS
 .vscode/
 .idea/

@@ -124,6 +124,16 @@ npm run dev
 
 Откройте `http://127.0.0.1:5173`. Vite проксирует `/api` на бэкенд, CORS настраивать не нужно.
 
+### 3. Всё сразу через Docker
+
+```bash
+docker compose up --build
+```
+
+Поднимутся два контейнера: `backend` (FastAPI) и `frontend` (nginx со статикой +
+прокси `/api` на бэкенд). Откройте `http://localhost:8080`. Данные SQLite хранятся в
+именованном томе `backend_data`.
+
 ### Демо-доступы
 
 | Роль | Email | Пароль |
@@ -151,15 +161,33 @@ VITE_DEMO=1 VITE_BASE=/voyago/ npm run build   # результат в frontend/
 Публикацию выполняет GitHub Actions ([.github/workflows/pages.yml](.github/workflows/pages.yml))
 на каждый push в `main`.
 
+## Деплой бэкенда (Render)
+
+В корне есть [render.yaml](render.yaml) (Blueprint). Чтобы поднять живой API:
+
+1. [render.com](https://render.com) → **New** → **Blueprint** → выбрать этот репозиторий.
+2. Render прочитает `render.yaml`, соберёт сервис `voyago-api` и сгенерирует `SECRET_KEY`.
+3. После деплоя API доступен по адресу вида `https://voyago-api.onrender.com`
+   (проверка — `/api/health`).
+
+Чтобы фронтенд (например, на Pages/Netlify) ходил на этот API — соберите его с
+`VITE_API_BASE=https://<ваш-домен>` и укажите этот домен в `CORS_ORIGINS` бэкенда.
+
 ## Тесты
 
 ```bash
-# backend
+# backend — pytest
 cd backend && pytest -q
 
-# frontend
+# frontend — юнит/компонентные (Vitest)
 cd frontend && npm run test:run
+
+# frontend — сквозные (Playwright, против демо-сборки)
+cd frontend && npx playwright install chromium && npm run test:e2e
 ```
+
+CI ([.github/workflows/ci.yml](.github/workflows/ci.yml)) на каждый push прогоняет
+backend-тесты, frontend-тесты, E2E (Playwright) и сборку Docker-образов.
 
 ## Лицензия
 

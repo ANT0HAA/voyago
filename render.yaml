@@ -1,0 +1,21 @@
+# Render Blueprint: разворачивает backend Voyago одним подключением репозитория.
+# https://render.com → New → Blueprint → выбрать этот репозиторий.
+services:
+  - type: web
+    name: voyago-api
+    runtime: python
+    rootDir: backend
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/health
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.5"
+      - key: SECRET_KEY
+        generateValue: true          # Render сгенерирует секрет автоматически
+      - key: CORS_ORIGINS
+        value: "*"                    # для прод: укажите домен фронтенда
+# Примечание: на free-плане диск эфемерный — SQLite пересоздаётся при передеплое
+# (демо-данные восстанавливаются автоматически). Для постоянного хранения
+# подключите диск (mountPath /data, DATABASE_URL=sqlite:////data/voyago.db) или Postgres.
