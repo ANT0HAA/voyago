@@ -77,7 +77,7 @@ export default function AuthPage() {
 
         {mode === 'login' && (
           <div className="mt-5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 px-3 py-2.5 text-xs text-slate-500 dark:text-slate-400">
-            Демо-доступ: <b>user@voyago.app</b> / user123 · админ <b>admin@voyago.app</b> / admin123
+            Демо-доступ: <b>user@voyago.app</b>/user123 · менеджер <b>manager@voyago.app</b>/manager123 · админ <b>admin@voyago.app</b>/admin123
           </div>
         )}
       </div>

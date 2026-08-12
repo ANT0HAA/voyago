@@ -33,7 +33,7 @@ function DemoBanner() {
   return (
     <div className="bg-amber-50 dark:bg-amber-500/10 border-b border-amber-200 dark:border-amber-500/30 text-amber-800 dark:text-amber-300 text-xs">
       <div className="max-w-6xl mx-auto px-5 py-1.5 flex items-center gap-2 flex-wrap">
-        <span>🧪 Демо-версия — все данные хранятся только в вашем браузере. Логин: <b>admin@voyago.app / admin123</b> или <b>user@voyago.app / user123</b>.</span>
+        <span>🧪 Демо-версия — данные хранятся только в вашем браузере. Вход: <b>admin@voyago.app</b>/admin123 · <b>manager@voyago.app</b>/manager123 · <b>user@voyago.app</b>/user123.</span>
         <button onClick={reset} className="underline hover:text-amber-900 dark:hover:text-amber-200 ml-auto">Сбросить демо</button>
       </div>
     </div>
@@ -60,7 +60,7 @@ function Navbar() {
   const authLinks = (onNav: () => void) => user ? (
     <>
       <Link to="/bookings" className={link} onClick={onNav}>Мои брони</Link>
-      {user.role === 'admin' && <Link to="/admin" className="text-sm font-medium text-brand-600" onClick={onNav}>Админка</Link>}
+      {(user.role === 'admin' || user.role === 'manager') && <Link to="/admin" className="text-sm font-medium text-brand-600" onClick={onNav}>Админка</Link>}
       <Link to="/account" className={link} onClick={onNav}>{user.name}</Link>
       <button onClick={() => { logout(); onNav() }} className={`${link} text-left`}>Выйти</button>
     </>
@@ -106,11 +106,13 @@ function Navbar() {
   )
 }
 
-function RequireAuth({ children, admin = false }: { children: ReactElement; admin?: boolean }) {
+function RequireAuth({ children, admin = false, staff = false }: { children: ReactElement; admin?: boolean; staff?: boolean }) {
   const { user, ready } = useAuth()
+  const isStaff = user?.role === 'admin' || user?.role === 'manager'
   if (!ready) return null
   if (!user) return <Navigate to="/login" replace />
   if (admin && user.role !== 'admin') return <Navigate to="/" replace />
+  if (staff && !isStaff) return <Navigate to="/" replace />
   return children
 }
 
@@ -133,7 +135,7 @@ export default function App() {
           <Route path="/bookings" element={<RequireAuth><MyBookings /></RequireAuth>} />
           <Route path="/account" element={<RequireAuth><Account /></RequireAuth>} />
           <Route path="/login" element={<AuthPage />} />
-          <Route path="/admin" element={<RequireAuth admin><Admin /></RequireAuth>} />
+          <Route path="/admin" element={<RequireAuth staff><Admin /></RequireAuth>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>

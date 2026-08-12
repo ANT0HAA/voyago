@@ -10,13 +10,29 @@ const TITLES: Record<string, string> = { flights: 'Рейсы', hotels: 'Оте�
 
 type Sort = 'price' | '-price' | 'time'
 interface FilterState {
+  q: string
   from: string; to: string; city: string
   date: string; minStars: number; duration: string
   maxPrice: number; sort: Sort
 }
 
+const PAGE_SIZE = 6
+
 const priceOf = (item: AnyItem, type: string) =>
   type === 'hotel' ? (item as Hotel).price_per_night : (item as Flight | Tour).price
+
+function haystack(item: AnyItem, type: string): string {
+  if (type === 'flight') {
+    const f = item as Flight
+    return `${f.airline} ${f.from_city} ${f.to_city}`.toLowerCase()
+  }
+  if (type === 'hotel') {
+    const h = item as Hotel
+    return `${h.name} ${h.city} ${h.description}`.toLowerCase()
+  }
+  const t = item as Tour
+  return `${t.title} ${t.city} ${t.description}`.toLowerCase()
+}
 
 export default function Catalog() {
   const { type = 'flights' } = useParams()
@@ -34,8 +50,9 @@ export default function Catalog() {
   )
 
   const [filters, setFilters] = useState<FilterState>({
-    from: '', to: '', city: '', date: '', minStars: 0, duration: 'any', maxPrice: 0, sort: 'price',
+    q: '', from: '', to: '', city: '', date: '', minStars: 0, duration: 'any', maxPrice: 0, sort: 'price',
   })
+  const [page, setPage] = useState(1)
 
   // Первичная загрузка + инициализация фильтров из параметров поиска (с главной).
   useEffect(() => {
@@ -46,7 +63,7 @@ export default function Catalog() {
       setItems(data as AnyItem[])
       const top = (data as AnyItem[]).reduce((m, it) => Math.max(m, priceOf(it, itemType)), 0)
       setFilters({
-        from: sp.get('from_city') ?? '', to: sp.get('to_city') ?? '', city: sp.get('city') ?? '',
+        q: '', from: sp.get('from_city') ?? '', to: sp.get('to_city') ?? '', city: sp.get('city') ?? '',
         date: '', minStars: 0, duration: 'any', maxPrice: top, sort: 'price',
       })
     }).catch((e) => setError(e.message)).finally(() => setLoading(false))
@@ -58,7 +75,9 @@ export default function Catalog() {
 
   const visible = useMemo(() => {
     const inc = (hay: string, needle: string) => !needle || hay.toLowerCase().includes(needle.toLowerCase())
+    const q = filters.q.trim().toLowerCase()
     let list = items.filter((item) => {
+      if (q && !haystack(item, itemType).includes(q)) return false
       const p = priceOf(item, itemType)
       if (filters.maxPrice && p > filters.maxPrice) return false
       if (itemType === 'flight') {
@@ -86,6 +105,13 @@ export default function Catalog() {
     return list
   }, [items, filters, itemType])
 
+  // Сброс на первую страницу при изменении фильтров/раздела.
+  useEffect(() => setPage(1), [filters, itemType])
+
+  const pageCount = Math.max(1, Math.ceil(visible.length / PAGE_SIZE))
+  const safePage = Math.min(page, pageCount)
+  const pageItems = visible.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE)
+
   return (
     <div className="max-w-6xl mx-auto px-5 py-8">
       <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-1">{TITLES[type] ?? 'Каталог'}</h1>
@@ -106,14 +132,14 @@ export default function Catalog() {
           {loading && <p className="text-slate-400 dark:text-slate-500">Загрузка…</p>}
           {!loading && visible.length === 0 && <p className="text-slate-400 dark:text-slate-500">Ничего не найдено — измените фильтры.</p>}
           <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">
-            {visible.map((item) => {
+            {pageItems.map((item) => {
               const v = describe(item, itemType)
               const soldOut = v.left <= 0
               return (
                 <div key={item.id}
                   className="relative rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 overflow-hidden flex flex-col hover:shadow-md hover:border-brand-200 transition">
                   <div className="relative">
-                    <Cover seed={v.seed} emoji={v.emoji} className="h-40" glyphClass="text-5xl" />
+                    <Cover seed={v.seed} emoji={v.emoji} photoSeed={`${v.type}-${v.id}`} className="h-40" glyphClass="text-5xl" />
                     <FavButton className="absolute top-2 right-2"
                       item={{ key: `${v.type}-${v.id}`, type: v.type, id: v.id, title: v.title, sub: v.sub, emoji: v.emoji, seed: v.seed, price: v.price, priceLabel: v.priceLabel }} />
                   </div>
@@ -135,6 +161,23 @@ export default function Catalog() {
               )
             })}
           </div>
+
+          {pageCount > 1 && (
+            <nav className="flex items-center justify-center gap-1.5 mt-6" aria-label="Пагинация">
+              <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={safePage === 1}
+                className="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-sm text-slate-600 dark:text-slate-300 disabled:opacity-40 hover:bg-slate-50 dark:hover:bg-slate-700">←</button>
+              {Array.from({ length: pageCount }, (_, i) => i + 1).map((n) => (
+                <button key={n} onClick={() => setPage(n)} aria-current={n === safePage ? 'page' : undefined}
+                  className={`w-9 py-1.5 rounded-lg text-sm border ${n === safePage
+                    ? 'bg-brand-600 text-white border-brand-600'
+                    : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'}`}>
+                  {n}
+                </button>
+              ))}
+              <button onClick={() => setPage((p) => Math.min(pageCount, p + 1))} disabled={safePage === pageCount}
+                className="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-sm text-slate-600 dark:text-slate-300 disabled:opacity-40 hover:bg-slate-50 dark:hover:bg-slate-700">→</button>
+            </nav>
+          )}
         </div>
       </div>
     </div>
@@ -151,6 +194,11 @@ function Filters({ type, filters, set, maxAvailable }: {
   return (
     <aside className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4 h-fit lg:sticky lg:top-20 space-y-4">
       <div className="font-semibold text-slate-700 dark:text-slate-200 text-sm">Фильтры</div>
+
+      <label className="block text-xs text-slate-500 dark:text-slate-400">Поиск
+        <input className={input} value={filters.q} onChange={(e) => set('q', e.target.value)}
+          placeholder="Название, город…" />
+      </label>
 
       {type === 'flight' && (
         <>

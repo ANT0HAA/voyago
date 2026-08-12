@@ -57,6 +57,12 @@ function requireAdmin(db: DemoDB): DemoDB['users'][number] {
   return user
 }
 
+function requireStaff(db: DemoDB): DemoDB['users'][number] {
+  const user = requireUser(db)
+  if (user.role !== 'admin' && user.role !== 'manager') throw new Error('Требуются права сотрудника')
+  return user
+}
+
 // имитируем сетевую задержку, чтобы спиннеры/состояния были видны
 const delay = <T>(value: T): Promise<T> => new Promise((res) => setTimeout(() => res(value), 180))
 
@@ -220,13 +226,13 @@ export const demoApi = {
 
   adminBookings: () => {
     const db = load()
-    requireAdmin(db)
+    requireStaff(db)
     return delay(db.bookings.slice().reverse())
   },
 
   adminCreate: (type: string, data: Record<string, unknown>) => {
     const db = load()
-    requireAdmin(db)
+    requireStaff(db)
     const t = type as ItemType
     const obj = buildItem(db, t, data, null)
     ;(db[LIST[t]] as unknown[]).push(obj)
@@ -236,7 +242,7 @@ export const demoApi = {
 
   adminUpdate: (type: string, id: number, data: Record<string, unknown>) => {
     const db = load()
-    requireAdmin(db)
+    requireStaff(db)
     const t = type as ItemType
     const existing = findItem(db, t, id)
     if (!existing) throw new Error('Не найдено')

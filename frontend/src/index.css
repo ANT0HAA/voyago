@@ -15,3 +15,25 @@ body {
 html.dark body {
   @apply bg-slate-900 text-slate-100;
 }
+
+/* Доступность: заметный фокус с клавиатуры (не мешает клику мышью). */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid #0570d1;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Уважаем системную настройку «уменьшить движение». */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

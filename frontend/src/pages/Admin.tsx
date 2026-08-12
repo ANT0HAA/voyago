@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { api } from '../api'
+import { useAuth } from '../auth'
 import type { Booking, Flight, Hotel, Stats, Tour } from '../types'
 
 type ManageType = 'flight' | 'hotel' | 'tour'
@@ -55,15 +56,25 @@ function rowView(type: ManageType, item: AnyItem): Row {
 }
 
 export default function Admin() {
+  const { user } = useAuth()
+  const isAdmin = user?.role === 'admin'
   const [tab, setTab] = useState<Tab>('flight')
   const [stats, setStats] = useState<Stats | null>(null)
 
-  const loadStats = () => { api.adminStats().then(setStats).catch(() => {}) }
-  useEffect(loadStats, [])
+  const loadStats = () => { if (isAdmin) api.adminStats().then(setStats).catch(() => {}) }
+  useEffect(loadStats, [isAdmin])
 
   return (
     <div className="max-w-6xl mx-auto px-5 py-8">
-      <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-6">Панель администратора</h1>
+      <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-2">
+        {isAdmin ? 'Панель администратора' : 'Панель менеджера'}
+      </h1>
+      {!isAdmin && (
+        <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
+          Доступны создание и редактирование предложений. Удаление и выручка — только у администратора.
+        </p>
+      )}
+      {isAdmin && <div className="mb-6" />}
 
       {stats && (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-8">
@@ -86,7 +97,7 @@ export default function Admin() {
         ))}
       </div>
 
-      {tab === 'bookings' ? <BookingsTable /> : <Manage type={tab} onChange={loadStats} />}
+      {tab === 'bookings' ? <BookingsTable /> : <Manage type={tab} onChange={loadStats} canDelete={isAdmin} />}
     </div>
   )
 }
@@ -100,7 +111,7 @@ function StatCard({ label, value }: { label: string; value: number | string }) {
   )
 }
 
-function Manage({ type, onChange }: { type: ManageType; onChange: () => void }) {
+function Manage({ type, onChange, canDelete }: { type: ManageType; onChange: () => void; canDelete: boolean }) {
   const [items, setItems] = useState<AnyItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -159,7 +170,7 @@ function Manage({ type, onChange }: { type: ManageType; onChange: () => void }) 
                   <td className="px-4 py-2.5 text-slate-500 dark:text-slate-400">{v.left} / {v.total}</td>
                   <td className="px-4 py-2.5 text-right whitespace-nowrap">
                     <button onClick={() => setEditing(item)} className="text-brand-600 hover:underline mr-3">Изменить</button>
-                    <button onClick={() => remove(item.id)} className="text-slate-400 dark:text-slate-500 hover:text-rose-600">Удалить</button>
+                    {canDelete && <button onClick={() => remove(item.id)} className="text-slate-400 dark:text-slate-500 hover:text-rose-600">Удалить</button>}
                   </td>
                 </tr>
               )

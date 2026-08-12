@@ -97,7 +97,7 @@ export default function Home() {
           {DESTINATIONS.map((d) => (
             <Link key={d} to={`/search/hotels?city=${encodeURIComponent(d)}`}
               className="rounded-2xl overflow-hidden hover:shadow-md transition">
-              <Cover seed={d} emoji={cityEmoji(d)} label={d} className="h-28" glyphClass="text-4xl" />
+              <Cover seed={d} emoji={cityEmoji(d)} label={d} photoSeed={`city-${d}`} className="h-28" glyphClass="text-4xl" />
             </Link>
           ))}
         </div>
@@ -123,6 +123,7 @@ function OffersCarousel({ offers }: { offers: ItemView[] }) {
   const count = offers.length
 
   useEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
     timer.current = setInterval(() => setIdx((i) => (i + 1) % count), 4500)
     return () => { if (timer.current) clearInterval(timer.current) }
   }, [count])
@@ -136,7 +137,7 @@ function OffersCarousel({ offers }: { offers: ItemView[] }) {
           {offers.map((o) => (
             <Link key={`${o.type}-${o.id}`} to={o.detailPath} className="w-full shrink-0">
               <div className="relative h-64">
-                <Cover seed={o.seed} emoji={o.emoji} className="absolute inset-0 w-full h-full" glyphClass="text-7xl" />
+                <Cover seed={o.seed} emoji={o.emoji} photoSeed={`${o.type}-${o.id}`} className="absolute inset-0 w-full h-full" glyphClass="text-7xl" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
                 <div className="absolute bottom-0 p-6 text-white">
                   <div className="text-xs uppercase tracking-wide opacity-80">Специальное предложение</div>

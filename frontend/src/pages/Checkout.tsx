@@ -17,6 +17,7 @@ export default function Checkout() {
   const [name, setName] = useState(user?.name ?? '')
   const [email, setEmail] = useState(user?.email ?? '')
   const [phone, setPhone] = useState('')
+  const [passengers, setPassengers] = useState<string[]>([user?.name ?? ''])
   const [card, setCard] = useState('')
   const [holder, setHolder] = useState('')
   const [expiry, setExpiry] = useState('')
@@ -39,9 +40,14 @@ export default function Checkout() {
     setPromoMsg(`Промокод «${r.code}» применён (${r.label})`)
   }
 
+  const setPassenger = (i: number, val: string) => setPassengers((prev) => prev.map((p, idx) => (idx === i ? val : p)))
+  const addPassenger = () => setPassengers((prev) => [...prev, ''])
+  const removePassenger = (i: number) => setPassengers((prev) => prev.filter((_, idx) => idx !== i))
+
   const cardOk = onlyDigits(card).length >= 12
   const expiryOk = /^\d{2}\/\d{2}$/.test(expiry)
-  const canPay = name.trim() && email.trim() && cardOk && holder.trim() && expiryOk && cvc.length >= 3
+  const passengersOk = passengers.every((p) => p.trim())
+  const canPay = name.trim() && email.trim() && cardOk && holder.trim() && expiryOk && cvc.length >= 3 && passengersOk
 
   const pay = async (e: FormEvent) => {
     e.preventDefault()
@@ -82,6 +88,27 @@ export default function Checkout() {
               <label className="block text-xs text-slate-500 dark:text-slate-400 sm:col-span-2">Телефон
                 <input className={field} value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+7 900 000-00-00" />
               </label>
+            </div>
+          </section>
+
+          <section className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="font-semibold text-slate-700 dark:text-slate-200">Путешественники</h2>
+              <button type="button" onClick={addPassenger} className="text-sm text-brand-600 hover:underline">+ Добавить</button>
+            </div>
+            <div className="space-y-2">
+              {passengers.map((p, i) => (
+                <div key={i} className="flex gap-2 items-center">
+                  <input className={`${field} !mt-0`} value={p} required
+                    placeholder={`Путешественник ${i + 1} — ФИО`}
+                    onChange={(e) => setPassenger(i, e.target.value)} />
+                  {passengers.length > 1 && (
+                    <button type="button" aria-label={`Удалить путешественника ${i + 1}`}
+                      onClick={() => removePassenger(i)}
+                      className="text-slate-400 dark:text-slate-500 hover:text-rose-600 px-2 shrink-0">✕</button>
+                  )}
+                </div>
+              ))}
             </div>
           </section>
 

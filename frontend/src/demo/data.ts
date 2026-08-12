@@ -83,6 +83,7 @@ export function freshDB(): DemoDB {
   }))
   const users: DemoUser[] = [
     { id: 1, email: 'admin@voyago.app', name: 'Администратор', role: 'admin', password: 'admin123' },
+    { id: 3, email: 'manager@voyago.app', name: 'Менеджер', role: 'manager', password: 'manager123' },
     { id: 2, email: 'user@voyago.app', name: 'Гость', role: 'user', password: 'user123' },
   ]
 

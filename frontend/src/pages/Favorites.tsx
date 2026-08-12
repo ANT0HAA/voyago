@@ -26,7 +26,7 @@ export default function Favorites() {
         {items.map((f) => (
           <div key={f.key} className="relative rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 overflow-hidden flex flex-col hover:shadow-md transition">
             <div className="relative">
-              <Cover seed={f.seed} emoji={f.emoji} className="h-40" glyphClass="text-5xl" />
+              <Cover seed={f.seed} emoji={f.emoji} photoSeed={f.key} className="h-40" glyphClass="text-5xl" />
               <button onClick={() => remove(f.key)} aria-label="Убрать из избранного"
                 className="absolute top-2 right-2 w-8 h-8 rounded-full bg-white/85 hover:bg-white shadow flex items-center justify-center text-rose-500">♥</button>
             </div>

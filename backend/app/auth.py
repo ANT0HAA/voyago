@@ -57,3 +57,10 @@ def require_admin(user: User = Depends(current_user)) -> User:
     if user.role != "admin":
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Требуются права администратора")
     return user
+
+
+def require_staff(user: User = Depends(current_user)) -> User:
+    """Сотрудник: администратор или менеджер (менеджер не может удалять и не видит выручку)."""
+    if user.role not in ("admin", "manager"):
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Требуются права сотрудника")
+    return user

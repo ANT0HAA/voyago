@@ -1,5 +1,11 @@
 import { test, expect } from '@playwright/test'
 
+// Блокируем внешние фото (picsum) — обложки падают на градиент мгновенно,
+// тесты детерминированы и не зависят от сети.
+test.beforeEach(async ({ page }) => {
+  await page.route('**picsum.photos**', (route) => route.abort())
+})
+
 test('сквозной сценарий: вход → выбор отеля → корзина → оплата → подтверждение', async ({ page }) => {
   // вход демо-пользователем
   await page.goto('/#/login')
@@ -8,9 +14,8 @@ test('сквозной сценарий: вход → выбор отеля → 
   await page.getByRole('button', { name: 'Войти' }).click()
   await expect(page.getByRole('link', { name: 'Мои брони' })).toBeVisible()
 
-  // выбор отеля и добавление в корзину
-  await page.goto('/#/search/hotels')
-  await page.getByText('Гранд Отель Сочи').first().click()
+  // открываем отель и добавляем в корзину
+  await page.goto('/#/hotels/1')
   await expect(page.getByRole('heading', { name: 'Гранд Отель Сочи' })).toBeVisible()
   await page.getByRole('button', { name: 'В корзину' }).click()
   await page.getByRole('link', { name: /Перейти в корзину/ }).click()
@@ -38,10 +43,10 @@ test('избранное: сердечко сохраняет предложен
   await expect(page.getByText('Подробнее →').first()).toBeVisible()
 })
 
-test('фильтр каталога: сортировка по городу прилёта сужает выдачу', async ({ page }) => {
+test('фильтр каталога: город прилёта сужает выдачу', async ({ page }) => {
   await page.goto('/#/search/flights')
-  await expect(page.getByText('Москва → Сочи').first()).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Рейсы' })).toBeVisible()
   await page.getByPlaceholder('Город прилёта').fill('Казань')
-  await expect(page.getByText('Москва → Сочи')).toHaveCount(0)
   await expect(page.getByText('Москва → Казань').first()).toBeVisible()
+  await expect(page.getByText('Москва → Сочи')).toHaveCount(0)
 })

@@ -98,7 +98,7 @@ export default function Detail({ type }: { type: ItemType }) {
 
       <div className="grid lg:grid-cols-3 gap-6 mt-4">
         <div className="lg:col-span-2">
-          <Gallery seed={v.seed} emojis={emojis} label={v.title} />
+          <Gallery seed={v.seed} emojis={emojis} label={v.title} photoBase={`${v.type}-${v.id}`} />
 
           <div className="mt-5 flex items-start justify-between gap-3">
             <div>
@@ -139,17 +139,17 @@ export default function Detail({ type }: { type: ItemType }) {
   )
 }
 
-function Gallery({ seed, emojis, label }: { seed: string; emojis: string[]; label: string }) {
+function Gallery({ seed, emojis, label, photoBase }: { seed: string; emojis: string[]; label: string; photoBase: string }) {
   const [active, setActive] = useState(0)
   return (
     <div>
-      <Cover seed={seed} emoji={emojis[active]} label={label}
+      <Cover seed={seed} emoji={emojis[active]} label={label} photoSeed={`${photoBase}-${active}`}
         className="w-full h-72 rounded-2xl" glyphClass="text-8xl" />
       <div className="flex gap-2 mt-2">
         {emojis.map((e, i) => (
-          <button key={i} onClick={() => setActive(i)}
+          <button key={i} onClick={() => setActive(i)} aria-label={`Фото ${i + 1}`}
             className={`rounded-lg overflow-hidden ring-2 transition ${i === active ? 'ring-brand-500' : 'ring-transparent'}`}>
-            <Cover seed={`${seed}-${i}`} emoji={e} className="w-24 h-16" glyphClass="text-2xl" />
+            <Cover seed={`${seed}-${i}`} emoji={e} photoSeed={`${photoBase}-${i}`} className="w-24 h-16" glyphClass="text-2xl" />
           </button>
         ))}
       </div>

@@ -71,6 +71,8 @@ def seed_if_empty() -> None:
 
         s.add(User(email="admin@voyago.app", name="Администратор",
                    hashed_password=hash_password("admin123"), role="admin"))
+        s.add(User(email="manager@voyago.app", name="Менеджер",
+                   hashed_password=hash_password("manager123"), role="manager"))
         demo_user = User(email="user@voyago.app", name="Гость",
                          hashed_password=hash_password("user123"))
         s.add(demo_user)

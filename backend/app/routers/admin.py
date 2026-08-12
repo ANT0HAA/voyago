@@ -4,13 +4,15 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session, func, select
 
-from ..auth import require_admin
+from ..auth import require_admin, require_staff
 from ..db import get_session
 from ..models import Booking, Flight, Hotel, Tour, User
 from ..schemas import BookingOut, FlightIn, HotelIn, Stats, TourIn
 
-# require_admin на весь роутер — каждый эндпоинт требует администратора.
-router = APIRouter(prefix="/api/admin", tags=["admin"], dependencies=[Depends(require_admin)])
+# require_staff на весь роутер: доступ у админа и менеджера.
+# Удаление и статистика (выручка) дополнительно ограничены require_admin.
+router = APIRouter(prefix="/api/admin", tags=["admin"], dependencies=[Depends(require_staff)])
+_ADMIN_ONLY = [Depends(require_admin)]
 
 
 def _get_or_404(session: Session, model: type, item_id: int):
@@ -37,7 +39,7 @@ def update_flight(item_id: int, data: FlightIn, session: Session = Depends(get_s
     return _save(session, obj)
 
 
-@router.delete("/flights/{item_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/flights/{item_id}", status_code=status.HTTP_204_NO_CONTENT, dependencies=_ADMIN_ONLY)
 def delete_flight(item_id: int, session: Session = Depends(get_session)) -> None:
     session.delete(_get_or_404(session, Flight, item_id))
     session.commit()
@@ -59,7 +61,7 @@ def update_hotel(item_id: int, data: HotelIn, session: Session = Depends(get_ses
     return _save(session, obj)
 
 
-@router.delete("/hotels/{item_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/hotels/{item_id}", status_code=status.HTTP_204_NO_CONTENT, dependencies=_ADMIN_ONLY)
 def delete_hotel(item_id: int, session: Session = Depends(get_session)) -> None:
     session.delete(_get_or_404(session, Hotel, item_id))
     session.commit()
@@ -81,7 +83,7 @@ def update_tour(item_id: int, data: TourIn, session: Session = Depends(get_sessi
     return _save(session, obj)
 
 
-@router.delete("/tours/{item_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/tours/{item_id}", status_code=status.HTTP_204_NO_CONTENT, dependencies=_ADMIN_ONLY)
 def delete_tour(item_id: int, session: Session = Depends(get_session)) -> None:
     session.delete(_get_or_404(session, Tour, item_id))
     session.commit()
@@ -96,7 +98,7 @@ def all_bookings(session: Session = Depends(get_session)) -> list[BookingOut]:
                        created_at=b.created_at) for b in rows]
 
 
-@router.get("/stats", response_model=Stats)
+@router.get("/stats", response_model=Stats, dependencies=_ADMIN_ONLY)
 def stats(session: Session = Depends(get_session)) -> Stats:
     def count(model: type) -> int:
         return session.exec(select(func.count()).select_from(model)).one()

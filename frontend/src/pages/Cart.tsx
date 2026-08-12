@@ -36,7 +36,7 @@ export default function Cart() {
           const nights = nightsOf(it)
           return (
             <div key={it.key} className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3 flex gap-4 items-center">
-              <Cover seed={it.seed} emoji={it.emoji} className="w-24 h-20 rounded-xl shrink-0" glyphClass="text-3xl" />
+              <Cover seed={it.seed} emoji={it.emoji} photoSeed={it.key} className="w-24 h-20 rounded-xl shrink-0" glyphClass="text-3xl" />
               <div className="flex-1 min-w-0">
                 <Link to={`/${it.type === 'flight' ? 'flights' : it.type === 'hotel' ? 'hotels' : 'tours'}/${it.id}`}
                   className="font-semibold text-slate-800 dark:text-slate-100 hover:text-brand-600">{it.title}</Link>
@@ -48,10 +48,10 @@ export default function Cart() {
                 </div>
               </div>
               <div className="flex items-center gap-1">
-                <button onClick={() => update(it.key, { qty: Math.max(1, it.qty - 1) })}
+                <button aria-label="Уменьшить количество" onClick={() => update(it.key, { qty: Math.max(1, it.qty - 1) })}
                   className="w-7 h-7 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700">−</button>
-                <span className="w-8 text-center text-sm">{it.qty}</span>
-                <button onClick={() => update(it.key, { qty: Math.min(it.max, it.qty + 1) })}
+                <span className="w-8 text-center text-sm" aria-live="polite">{it.qty}</span>
+                <button aria-label="Увеличить количество" onClick={() => update(it.key, { qty: Math.min(it.max, it.qty + 1) })}
                   className="w-7 h-7 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700">+</button>
               </div>
               <div className="text-right w-28 shrink-0">

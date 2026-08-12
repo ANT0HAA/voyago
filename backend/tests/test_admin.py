@@ -26,6 +26,20 @@ def test_create_update_delete_flight(client, make_user):
     assert client.get(f"/api/flights/{fid}").status_code == 404
 
 
+def test_manager_can_manage_but_not_delete_or_stats(client, make_user):
+    manager = make_user(email="manager@test.com", role="manager")
+
+    created = client.post("/api/admin/flights", json=_FLIGHT, headers=manager)
+    assert created.status_code == 201                                  # менеджер создаёт
+    fid = created.json()["id"]
+    assert client.put(f"/api/admin/flights/{fid}", json={**_FLIGHT, "seats_total": 110},
+                      headers=manager).status_code == 200              # и редактирует
+    assert client.get("/api/admin/bookings", headers=manager).status_code == 200
+
+    assert client.get("/api/admin/stats", headers=manager).status_code == 403        # выручка — только админ
+    assert client.delete(f"/api/admin/flights/{fid}", headers=manager).status_code == 403  # удаление — только админ
+
+
 def test_update_preserves_booked_count(client, make_user, seed_catalog):
     admin = make_user(email="admin@test.com", role="admin")
     user = make_user(email="u@test.com")
