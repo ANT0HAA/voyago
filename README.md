@@ -1,5 +1,13 @@
 # ✈ Voyago — бронирование путешествий
 
+[![CI](https://github.com/ANT0HAA/voyago/actions/workflows/ci.yml/badge.svg)](https://github.com/ANT0HAA/voyago/actions/workflows/ci.yml)
+[![Live demo](https://img.shields.io/badge/demo-live-brightgreen)](https://ant0haa.github.io/voyago/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+![Python](https://img.shields.io/badge/Python-3776AB?logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)
+![React](https://img.shields.io/badge/React-20232A?logo=react&logoColor=61DAFB)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)
+
 ### 🔴 [Открыть живое демо →](https://ant0haa.github.io/voyago/)
 
 Кликабельная демо-версия в браузере — можно искать, бронировать, зайти как пользователь
